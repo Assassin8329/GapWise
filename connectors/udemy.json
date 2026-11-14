@@ -1,0 +1,28 @@
+{
+  "id": "udemy",
+  "name": "Udemy",
+  "category": "Courses & Certificates",
+  "description": "Connect your Udemy student library, course progress, quiz milestones, and certificates.",
+  "icon": "book-open",
+  "color": "#a435f0",
+  "auth_type": "oauth2_pkce",
+  "auth_url": "https://www.udemy.com/oauth2/authorize/",
+  "token_url": "https://www.udemy.com/oauth2/token/",
+  "revoke_url": "https://www.udemy.com/oauth2/revoke/",
+  "api_base": "https://www.udemy.com/api-2.0",
+  "scopes": ["user:courses", "user:certificates"],
+  "scope_descriptions": {
+    "user:courses": "Syncs course enrollments and watch percentage.",
+    "user:certificates": "Imports completed course completion badges and completion dates."
+  },
+  "supports_pat": true,
+  "pat_instruction": "Create an API client token in Udemy Instructor/Learner API console.",
+  "supports_manual_import": true,
+  "mock_user_endpoint": "/users/me/subscribed-courses",
+  "mock_data": {
+    "courses_enrolled": 7,
+    "completed_courses": [
+      {"title": "The Complete 2026 Web Development Bootcamp", "hours": 48}
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "linkedin",
+  "name": "LinkedIn",
+  "category": "Career & Experience",
+  "description": "Sync past job roles, endorsed skills, certifications, and target career interests.",
+  "icon": "linkedin",
+  "color": "#0a66c2",
+  "auth_type": "oauth2_pkce",
+  "auth_url": "https://www.linkedin.com/oauth/v2/authorization",
+  "token_url": "https://www.linkedin.com/oauth/v2/accessToken",
+  "revoke_url": "https://www.linkedin.com/oauth/v2/revoke",
+  "api_base": "https://api.linkedin.com/v2",
+  "scopes": ["r_liteprofile", "r_emailaddress"],
+  "scope_descriptions": {
+    "r_liteprofile": "Reads your verified name, current headline, and basic profile info.",
+    "r_emailaddress": "Confirms your primary account email address for unified login."
+  },
+  "supports_pat": false,
+  "supports_manual_import": true,
+  "mock_user_endpoint": "/me",
+  "mock_data": {
+    "headline": "Aspiring Full Stack Engineer | CS Senior",
+    "verified_skills": ["Python", "SQL", "Git", "Problem Solving"],
+    "endorsements_count": 38,
+    "current_company": "Tech Fellowship"
+  }
+}

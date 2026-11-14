@@ -1,0 +1,29 @@
+{
+  "id": "coursera",
+  "name": "Coursera",
+  "category": "Courses & Certificates",
+  "description": "Import verified course completions, grades, specialization certificates, and syllabus progress.",
+  "icon": "graduation-cap",
+  "color": "#0056D2",
+  "auth_type": "oauth2_pkce",
+  "auth_url": "https://api.coursera.org/oauth2/v1/auth",
+  "token_url": "https://api.coursera.org/oauth2/v1/token",
+  "revoke_url": "https://api.coursera.org/oauth2/v1/revoke",
+  "api_base": "https://api.coursera.org/api",
+  "scopes": ["view_certificates", "view_course_progress"],
+  "scope_descriptions": {
+    "view_certificates": "Validates official university course certificates and digital credentials.",
+    "view_course_progress": "Reads active modules, quiz scores, and course completion percentages."
+  },
+  "supports_pat": true,
+  "pat_instruction": "Generate an API user token from Coursera Account Settings -> Integrations.",
+  "supports_manual_import": true,
+  "mock_user_endpoint": "/learner/me",
+  "mock_data": {
+    "completed_courses": [
+      {"title": "Python for Everybody", "institution": "Univ of Michigan", "grade": "98%"},
+      {"title": "Databases and SQL for Data Science", "institution": "IBM", "grade": "94%"}
+    ],
+    "hours_logged": 65
+  }
+}

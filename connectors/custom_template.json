@@ -1,0 +1,26 @@
+{
+  "id": "custom_provider",
+  "name": "Custom OAuth Provider",
+  "category": "Custom Connector",
+  "description": "Drop-in configuration for any OAuth 2.0 PKCE compliant API provider.",
+  "icon": "cpu",
+  "color": "#6366f1",
+  "auth_type": "oauth2_pkce",
+  "auth_url": "https://auth.example.com/oauth/authorize",
+  "token_url": "https://auth.example.com/oauth/token",
+  "revoke_url": "https://auth.example.com/oauth/revoke",
+  "api_base": "https://api.example.com/v1",
+  "scopes": ["read:profile", "read:activity"],
+  "scope_descriptions": {
+    "read:profile": "Read public account identifiers.",
+    "read:activity": "Read recent learning activity logs."
+  },
+  "supports_pat": true,
+  "pat_instruction": "Paste your API Bearer token.",
+  "supports_manual_import": true,
+  "mock_user_endpoint": "/user",
+  "mock_data": {
+    "status": "connected",
+    "provider": "Custom Generic Connector"
+  }
+}

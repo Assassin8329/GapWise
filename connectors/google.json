@@ -1,0 +1,28 @@
+{
+  "id": "google",
+  "name": "Google",
+  "category": "Identity & Workspace",
+  "description": "Primary sign-in provider and calendar sync for personalized study scheduling.",
+  "icon": "google",
+  "color": "#4285f4",
+  "auth_type": "oauth2_pkce",
+  "auth_url": "https://accounts.google.com/o/oauth2/v2/auth",
+  "token_url": "https://oauth2.googleapis.com/token",
+  "revoke_url": "https://oauth2.googleapis.com/revoke",
+  "api_base": "https://www.googleapis.com",
+  "scopes": ["openid", "profile", "email", "calendar.readonly"],
+  "scope_descriptions": {
+    "openid": "Secure OpenID Connect token for platform authentication.",
+    "profile": "Reads your display name and profile picture.",
+    "email": "Verifies your Google account address.",
+    "calendar.readonly": "Reads your busy slots/exam blocks to plan personalized study schedules."
+  },
+  "supports_pat": false,
+  "supports_manual_import": false,
+  "mock_user_endpoint": "/oauth2/v3/userinfo",
+  "mock_data": {
+    "name": "Alex Chen",
+    "email": "alex.chen@learn.edu",
+    "verified_email": true
+  }
+}

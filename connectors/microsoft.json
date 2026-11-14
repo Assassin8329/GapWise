@@ -1,0 +1,25 @@
+{
+  "id": "microsoft",
+  "name": "Microsoft",
+  "category": "Certifications & Identity",
+  "description": "Sync Microsoft Learn certifications (Azure, Power Platform) and Outlook calendar study blocks.",
+  "icon": "shield",
+  "color": "#00a4ef",
+  "auth_type": "oauth2_pkce",
+  "auth_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+  "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+  "revoke_url": "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
+  "api_base": "https://graph.microsoft.com/v1.0",
+  "scopes": ["User.Read", "Calendars.Read"],
+  "scope_descriptions": {
+    "User.Read": "Reads your verified Microsoft Learn profile and trophy credentials.",
+    "Calendars.Read": "Accesses Outlook calendar free/busy times for study planning."
+  },
+  "supports_pat": false,
+  "supports_manual_import": true,
+  "mock_user_endpoint": "/me",
+  "mock_data": {
+    "displayName": "Alex Chen",
+    "learn_badges": ["Azure Fundamentals AZ-900", "GitHub Actions Pro"]
+  }
+}
