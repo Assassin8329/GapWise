@@ -1,46 +1,44 @@
-# GapWise — AI-Powered Learning Platform & Career Navigator
+# GapWise — AI-Powered Learning Platform & Adaptive Career Navigator
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.9+](https://img.shields.io/badge/Python-3.9%2B-brightgreen.svg)](https://www.python.org/)
 [![Security: AES--256--GCM](https://img.shields.io/badge/Token%20Vault-AES--256--GCM-success.svg)](core/crypto_vault.py)
 [![OAuth: PKCE S256](https://img.shields.io/badge/OAuth%202.0-RFC%207636%20PKCE-blueviolet.svg)](core/generic_connectors.py)
 
-**GapWise** is an intelligent, adaptive career navigation and skill gap closure platform designed for **students**, **job seekers**, and **working professionals**. It identifies skill discrepancies, builds personalized visual learning roadmaps toward target roles, provides live adaptive testing and mock interviews, and dynamically recalibrates when personal goals, study rates, or schedules shift.
+**GapWise** is an intelligent, real-data-driven career navigation and skill gap closure web application. It identifies individual learner skill gaps, builds personalized visual roadmaps to target careers, tracks learning telemetry, and dynamically adapts when personal goals, study rates, or schedules shift.
 
 ---
 
-## 🎯 Goal & Problem Statement
+## 🎯 Goal & Core Philosophy
 
-Modern learners struggle with disconnected roadmaps, uncalibrated self-assessments, and rigid curricula that ignore life events:
-- **Skill Blindspots**: Learners often experience the **Dunning-Kruger effect** (overestimating proficiency) or **Imposter Syndrome** (underestimating mastery).
-- **Static Roadmaps**: When career goals or exams shift, roadmaps fail to adapt.
-- **Account Privacy & Credential Leakage**: Traditional platforms store central API keys or expose raw user tokens to client-side code.
-
-**GapWise solves this** through:
-1. Deep skill analysis comparing current capabilities against industry career benchmarks.
-2. An interactive **visual dependency graph (DAG)** that unlocks advanced topics as prerequisites are mastered.
-3. A **NIST SP 800-38D compliant Token Vault** using **AES-256-GCM** encryption with unique per-user data keys, ensuring user credentials never leak to the browser or server logs.
+- **Goal**: Find a learner's skill gaps. Build a personalized roadmap to a target career. Track progress. Adapt when goals or results change.
+- **Target Users**: Students, job seekers, and working professionals. All users sign in with Google.
+- **Strict Data Rule**:
+  - **Zero fake, seeded, or mock data**.
+  - Retains strictly real user profiles, real assessment attempts, and real external API credentials.
+  - Graceful, informative **Empty States** when data has not yet been populated.
 
 ---
 
-## 🏗️ Architecture & Core Components
+## 🏗️ Architecture & Project Structure
 
 ```
 GapWise/
-├── server.py                 # Threading HTTPServer & REST API router (Zero external dependencies)
+├── package.json              # Project descriptor, npm scripts & metadata (name: gapwise)
+├── server.py                 # High-performance zero-dependency web server & REST API
 ├── config/
-│   └── kms.json              # Simulated KMS Key Management Storage (Master Key store)
-├── connectors/               # Generic Connector Framework configs (JSON-driven)
-│   ├── github.json           # GitHub Repos & Commit activity
-│   ├── linkedin.json         # LinkedIn Verified skills & experience
-│   ├── google.json           # Google Auth & Calendar scheduling
-│   ├── coursera.json         # Coursera Course credentials
-│   ├── udemy.json            # Udemy Enrolled tracks
-│   ├── notion.json           # Notion Study workspace exporter
-│   ├── microsoft.json        # Microsoft Learn trophies & badges
-│   └── custom_template.json  # Plug-and-play template for ANY OAuth 2.0 PKCE provider
+│   └── kms.json              # Key Management Storage (vault master key, gitignored)
+├── connectors/               # Generic Connector Framework (JSON-driven, zero mock data)
+│   ├── google.json           # Real Google OAuth 2.0 PKCE connector
+│   ├── github.json           # GitHub code & project repos
+│   ├── linkedin.json         # LinkedIn verified skills & experience
+│   ├── coursera.json         # Coursera verified course certificates
+│   ├── udemy.json            # Udemy student library & progress
+│   ├── notion.json           # Notion study workspace export
+│   ├── microsoft.json        # Microsoft Learn certifications
+│   └── custom_template.json  # Drop-in template for ANY OAuth 2.0 PKCE provider
 ├── core/
-│   ├── aes_gcm.py            # Pure-Python AES-256-GCM cipher with Galois Field GF(2^128) arithmetic
+│   ├── aes_gcm.py            # Pure-Python NIST SP 800-38D AES-256-GCM cipher
 │   ├── crypto_vault.py       # AES-256-GCM Token Vault, PBKDF2 data keys & Log Scrubber
 │   ├── generic_connectors.py # Dynamic connector loader, RFC 7636 PKCE S256 engine & Proxy
 │   ├── models.py             # UserProfile, Career benchmarks (Full Stack, AI/ML, DevOps, Data Science)
@@ -53,131 +51,113 @@ GapWise/
 │   ├── analytics.py          # Learning Twin telemetry, Skill Passport, Ebbinghaus Skill Decay
 │   └── scheduling.py         # Time-budget scheduling dynamically adapting around exams/crunch
 ├── data/
-│   └── seed_data.py          # Realistic student, job seeker, and professional profiles & question banks
+│   ├── store.py              # Persistent SQLite store for real users, attempts & sessions
+│   ├── gapwise.db            # SQLite database file
+│   └── seed_data.py          # Curriculum course catalog & evaluation schemas (no fake users)
 ├── static/
-│   ├── index.html            # Single Page Application (SPA) dashboard
+│   ├── index.html            # GapWise Single Page Application (SPA) dashboard
 │   ├── css/styles.css        # Responsive glassmorphism styling & visual graph layout
 │   └── js/app.js             # Reactive client store & UI controller
 └── tests/
-    └── test_gapwise.py       # Automated unit test suite (Cryptography, Vault, IRT, DAG)
+    └── test_gapwise.py       # Automated unit test suite (Cryptography, Vault, IRT, DAG, Store)
 ```
 
 ---
 
-## 🌟 Key Features
+## 🌟 Key Capabilities
 
-### 1. User Profile & Adaptive Skill Matrix
-- Supports three pre-configured personas (**Alex Chen - Senior CS Student**, **Maya Patel - Job Seeker Career Switcher**, **David Miller - Senior DevOps Pro**) or custom accounts.
-- Self-rate skills (1–5 stars) with instant composite recalibration against assessed scores.
+### 1. User Profile & Real Google Sign-In
+- All users sign in with Google using **OAuth 2.0 with PKCE (RFC 7636)**.
+- Store real profile details, competencies, certifications, completed projects, and target career goals.
+- Self-rate skills (1–5 stars) with instant composite recalculation.
 
-### 2. Career Matching & Skill Gap Analysis
-- Benchmarks against live market roles: **Full Stack Developer**, **AI / ML Engineer**, **Cloud & DevOps Engineer**, and **Data Scientist**.
-- Example: Compares Python, SQL, and HTML against Full Stack Developer, highlighting missing competencies: **JavaScript**, **React**, and **Node.js**.
+### 2. Skill Analysis & Career Matching
+- Real-time comparison between current learner skills and chosen role benchmarks:
+  - **Full Stack Developer**
+  - **AI / ML Engineer**
+  - **Cloud & DevOps Engineer**
+  - **Data Scientist**
+- Example: Identifies Python, SQL, and HTML $\rightarrow$ highlights missing competencies: **JavaScript**, **React**, and **Node.js**.
 
-### 3. Visual Dependency Graph (DAG) & Unlock Path
-- Interactive SVG/node dependency graph.
-- Enforces strict prerequisite logic: advanced modules (e.g., *Production React* or *Full Stack Capstone*) remain locked until foundational courses (e.g., *Modern JavaScript Deep Dive*) are mastered.
-- Explains every recommendation with transparent *"Why this pick?"* rationales.
+### 3. Learning Recommendations & Visual DAG
+- Interactive SVG dependency graph.
+- **Dependency Unlock Path**: Locks advanced topics until prerequisites are mastered.
+- Transparent *"Why this pick?"* explanations for every course and practical exercise.
 
-### 4. Confidence Meter (Self-Rated vs. Assessed)
-- Detects the **Dunning-Kruger Effect** (high self-rating but lower assessment score).
-- Identifies **Imposter Syndrome** (tested mastery exceeding self-perception).
-- Flags calibrated skills where perception aligns with empirical performance.
+### 4. Progress Tracking & Confidence Meter
+- Tracks real lessons, assessments, streaks, and milestone completions.
+- **Confidence Meter**: Detects **Dunning-Kruger Risk** (over-confidence) and **Imposter Syndrome** (under-confidence).
 
-### 5. AI Mentor (Ada) & Weekly Diagnostic Check-In
-- Context-aware guidance incorporating current gaps and study habits.
-- 3-question **Weekly Check-in** that recalibrates weekly hour budgets and injects remedial modules.
-- **Explain-Back Mode (Feynman Technique)**: Learner teaches a concept in their own words; the agent evaluates conceptual accuracy, depth, clarity, and flags misconceptions.
+### 5. AI Mentor (Ada) & Weekly Diagnostic
+- Interactive guidance tailored to learner gaps.
+- **Weekly Check-in**: Diagnostic questions adjust weekly study budget and learning velocity.
+- **Explain-Back Mode (Feynman Technique)**: Learner teaches a concept in their own words; the agent grades conceptual depth, clarity, and flags misconceptions.
 
 ### 6. Personalized Tests & Live Code Sandbox
-- **Adaptive IRT Testing**: Uses Item Response Theory parameters ($a, b, c, \theta$). Slower learners receive smaller step sizes ($\Delta \theta$) and scaffolding hints; fast learners jump to synthesis challenges.
-- **Micro-Quizzes in Code**: In-editor challenges embedded directly into code comments.
+- **Adaptive IRT Tests**: Difficulty ($\theta$) dynamically adapts after each attempt based on learning rate. Slower learners receive smaller step sizes and scaffolding hints; fast learners receive harder synthesis questions.
+- **Micro-Quizzes in Code**: In-editor challenges pop up directly inside code comments.
 - **Live Code Sandbox**: In-browser Python 3 and JavaScript execution environment with unit test assertion reporting.
 
 ### 7. Personalized Mock Interview Agent
-- Role-specific scenarios (e.g., Single Page App Architecture, Idempotent Payment APIs, Transformer Multi-Head Attention).
+- Role-specific technical & behavioral interview scenarios.
 - Scored evaluations across **Technical Depth**, **Clarity**, **Problem Solving**, and **Communication**.
 
 ### 8. Career Pivot Simulator & Roadmap Diff
-- What-if analysis: switch target role from Full Stack to AI/ML or Cloud Engineer.
-- Computes exact skill overlap %, transferred skills efficiency, and newly required skills.
+- Simulates changing career targets.
+- Shows transferred skill efficiency, newly required skills, and timeline adjustments.
 
-### 9. Learning Twin & Skill Decay Monitor
-- **Learning Twin**: Digital twin mirroring study velocity (XP/day), retention stability, and peak focus hours.
-- **Ebbinghaus Forgetting Curve**: Models retention decay ($R = e^{-t / S}$); triggers 2-minute refresher quizzes before retention dips below 75%.
+### 9. Learning Twin & Skill Decay
+- **Learning Twin**: Profile mirroring velocity (XP/day), retention curve, and peak focus hours.
+- **Ebbinghaus Forgetting Curve**: Models retention decay ($R = e^{-\lambda t}$); triggers 2-minute refresher reminders before retention dips below 75%.
 
-### 10. Advanced Cohort & Academic Features
+### 10. Cohort & Academic Features
 - **Skill Passport**: Cryptographically signed public credential link with SHA-256 digest.
-- **Auto-Built Portfolio**: Automatically builds a showcase of completed projects with GitHub links and deploy URLs.
+- **Auto-Built Portfolio**: Showcases real completed projects with GitHub links and deploy URLs.
 - **Cohort Heatmap**: Academic/university matrix highlighting collective team blindspots.
-- **Time-Budget Scheduling**: Accommodates midterm exam weeks and work crunch sprints by automatically softening learning loads.
+- **Time-Budget Scheduling**: Automatically soft-pedals study hours during exam weeks or work crunch sprints.
 
 ---
 
-## 🔒 Security Architecture: Token Vault & Generic Connectors
+## 🔒 Token Vault & Generic Connector Framework
 
-### AES-256-GCM Token Vault
-1. **Zero Owner Keys**: The platform never calls third-party APIs using its own developer keys. All calls run strictly using the user's personal vaulted credentials.
-2. **KMS & PBKDF2 Data Keys**: Each user receives a unique derived 256-bit encryption key derived via PBKDF2-HMAC-SHA256 from the master KMS key and a user-specific salt.
-3. **Zero Token Leakage**:
-   - Access and refresh tokens are **never sent to the browser** (only sanitized status like `gho_***3f9` is returned).
-   - Server logs run through an automated regex scrubber that intercepts and masks tokens (`[REDACTED_BY_TOKEN_VAULT]`).
-4. **Server-Side Proxy**: Authorized agents make calls through `/api/proxy/:provider_id/:endpoint`, which injects vaulted tokens internally.
-
-### Generic Connector Framework
-Adding a new provider requires **zero code changes**—simply drop a JSON configuration into the `connectors/` folder:
-```json
-{
-  "id": "github",
-  "name": "GitHub",
-  "auth_type": "oauth2_pkce",
-  "auth_url": "https://github.com/login/oauth/authorize",
-  "token_url": "https://github.com/login/oauth/access_token",
-  "revoke_url": "https://api.github.com/applications/tokens/{token}",
-  "api_base": "https://api.github.com",
-  "scopes": ["read:user", "repo:status"],
-  "scope_descriptions": {
-    "read:user": "Reads your verified public username and profile info.",
-    "repo:status": "Reads commit activity for skill verification."
-  },
-  "supports_pat": true
-}
-```
-- **OAuth 2.0 with PKCE (RFC 7636)**: Generates high-entropy `code_verifier` and SHA-256 `code_challenge` (S256).
-- **Personal Access Tokens (PAT)**: Supported for providers without OAuth.
-- **Manual Import**: Ingests CSV or text credentials for platforms without public APIs.
-- **Instant Revocation**: Disconnecting an account calls the provider's revocation endpoint and purges the key from the vault.
+- **AES-256-GCM Encryption**: All access and refresh tokens encrypted with a 96-bit unique nonce and NIST SP 800-38D tag.
+- **Unique Data Key Per User**: Derived via PBKDF2-HMAC-SHA256 from the master KMS key and user salt.
+- **Zero Token Leakage**: Tokens are **never sent to the browser** and are intercepted by server log scrubbers (`[REDACTED_BY_TOKEN_VAULT]`).
+- **Generic Connectors**: New providers are added via JSON files—zero code modifications required.
+- **Personal Access Tokens (PAT)** and **Manual CSV/PDF Import** supported.
+- **Instant Revocation**: Disconnecting an account revokes access at the provider and purges the key from the vault.
 
 ---
 
 ## 🚀 Quickstart & Setup
 
-### Prerequisites
-- Python 3.9+ (Built entirely on Python standard library — **no `pip install` required!**)
-- Any modern web browser (Chrome, Firefox, Safari, Edge)
-
 ### 1. Launch the Server
 ```bash
-cd /Users/shricharansrinivasan/GapWise
+# Option A: Directly with Python
 python3 server.py 8000
+
+# Option B: With npm
+npm start
 ```
 
 ### 2. Access the Application
-Open your browser and navigate to:
+Open your browser to:
 ```
 http://localhost:8000
 ```
 
-### 3. Run the Automated Test Suite
+### 3. Run Automated Tests
 ```bash
+# Option A: Directly with Python
 python3 -m unittest discover -s tests -p "test_*.py"
+
+# Option B: With npm
+npm test
 ```
 
 Expected output:
 ```
-.........
-----------------------------------------------------------------------
-Ran 9 tests in 0.049s
+Ran 9 tests in 0.050s
 
 OK
 ```

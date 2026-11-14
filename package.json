@@ -1,0 +1,21 @@
+{
+  "name": "gapwise",
+  "version": "1.0.0",
+  "description": "GapWise - AI-Powered Learning Platform & Adaptive Career Navigator",
+  "main": "server.py",
+  "scripts": {
+    "start": "python3 server.py 8000",
+    "test": "python3 -m unittest discover -s tests -p 'test_*.py'"
+  },
+  "keywords": [
+    "gapwise",
+    "ai-learning",
+    "career-navigation",
+    "skill-gap-analysis",
+    "oauth2-pkce",
+    "token-vault",
+    "aes-256-gcm"
+  ],
+  "author": "GapWise Team",
+  "license": "MIT"
+}

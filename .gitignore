@@ -26,3 +26,6 @@ venv/
 # Logs & Runtime
 *.log
 *.sqlite3-journal
+*.db
+*.sqlite3
+
