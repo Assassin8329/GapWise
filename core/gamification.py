@@ -10,16 +10,16 @@ from typing import Dict, List, Any
 import math
 
 LEVEL_THRESHOLDS = [
-    (0, "Level 1: Novice Coder"),
-    (250, "Level 2: Syntax Apprentice"),
-    (600, "Level 3: Logic Builder"),
-    (1100, "Level 4: Full-Stack Apprentice"),
-    (1800, "Level 5: Systems Crafter"),
-    (2700, "Level 6: ML & Cloud Practitioner"),
-    (3800, "Level 7: Architecture Specialist"),
-    (5200, "Level 8: Lead Engineer"),
-    (7000, "Level 9: Principal Architect"),
-    (10000, "Level 10: Code Alchemist")
+    (0, "Level 1: Curious Beginner"),
+    (250, "Level 2: Emerging Learner"),
+    (600, "Level 3: Practice Builder"),
+    (1100, "Level 4: Independent Learner"),
+    (1800, "Level 5: Confident Practitioner"),
+    (2700, "Level 6: Applied Thinker"),
+    (3800, "Level 7: Insight Specialist"),
+    (5200, "Level 8: Learning Leader"),
+    (7000, "Level 9: Masterful Practitioner"),
+    (10000, "Level 10: Lifelong Learner")
 ]
 
 class GamificationEngine:
@@ -54,29 +54,51 @@ class GamificationEngine:
         }
 
     @staticmethod
-    def get_personalized_quests(user_type: str, learning_rate: float) -> List[Dict[str, Any]]:
+    def get_personalized_quests(user_profile: Dict[str, Any], learning_rate: float = None) -> List[Dict[str, Any]]:
         """
-        AI personalizes daily and weekly quests based on student vs working professional needs.
+        Personalizes quests from the learner's declared direction and preferences.
+        Quest progress is intentionally unstarted until a real action is recorded.
         """
-        is_pro = (user_type == "professional")
+        if isinstance(user_profile, str):
+            user_profile = {
+                "user_type": user_profile,
+                "learning_rate": learning_rate,
+            }
+
+        domain = str(user_profile.get("goal_domain") or "").strip()
+        outcome = str(user_profile.get("target_outcome") or "").strip()
+        experience = str(user_profile.get("experience_level") or "").strip().lower()
+        style = str(user_profile.get("preferred_learning_style") or "").strip()
+        direction = domain or outcome
+        if not direction:
+            return []
+
+        outcome_phrase = outcome or "your chosen direction"
+        style_phrase = style or "your preferred learning style"
+        if any(word in experience for word in ("beginner", "new", "starting")):
+            difficulty_phrase = "Start with a guided"
+        elif any(word in experience for word in ("advanced", "expert", "experienced")):
+            difficulty_phrase = "Stretch with an applied"
+        else:
+            difficulty_phrase = "Complete an applied"
 
         quests = [
             {
                 "id": "q_daily_1",
                 "type": "daily",
-                "title": "Evening Code Review Sprint" if is_pro else "Deep Work Focus Session",
-                "description": "Complete 1 interactive code sandbox challenge.",
+                "title": f"{difficulty_phrase} {direction} practice",
+                "description": f"Use {style_phrase.lower()} to complete one model-generated practice challenge toward {outcome_phrase}.",
                 "target": 1,
-                "current": 1,
-                "completed": True,
+                "current": 0,
+                "completed": False,
                 "xp_reward": 75,
-                "badge_icon": "code"
+                "badge_icon": "target"
             },
             {
                 "id": "q_daily_2",
                 "type": "daily",
-                "title": "Feynman Concept Mastery",
-                "description": "Submit 1 explanation in Explain-Back Mode to test your mental model.",
+                "title": f"Explain-back: {direction}",
+                "description": "Choose one concept or skill and explain it in your own words to reveal what to reinforce.",
                 "target": 1,
                 "current": 0,
                 "completed": False,
@@ -86,8 +108,8 @@ class GamificationEngine:
             {
                 "id": "q_weekly_1",
                 "type": "weekly",
-                "title": "Mock Interview Simulation",
-                "description": "Complete 1 full technical mock interview session with the AI agent.",
+                "title": "Rehearse your intended outcome",
+                "description": f"Respond to one realistic {direction} scenario and review the model's evidence-based feedback.",
                 "target": 1,
                 "current": 0,
                 "completed": False,
@@ -97,13 +119,13 @@ class GamificationEngine:
             {
                 "id": "q_weekly_2",
                 "type": "weekly",
-                "title": "Spaced Repetition Blitz",
-                "description": "Refresh 2 decaying skills before memory retention dips below 70%.",
+                "title": "Reflect and reinforce",
+                "description": f"Review two real learning signals from your work toward {outcome_phrase} and choose the next small step.",
                 "target": 2,
-                "current": 1,
+                "current": 0,
                 "completed": False,
                 "xp_reward": 180,
-                "badge_icon": "zap"
+                "badge_icon": "refresh"
             }
         ]
         return quests

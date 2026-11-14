@@ -1,18 +1,18 @@
-# GapWise — AI-Powered Learning Platform & Adaptive Career Navigator
+# GapWise — Domain-Agnostic AI Learning Workspace
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.9+](https://img.shields.io/badge/Python-3.9%2B-brightgreen.svg)](https://www.python.org/)
 [![Security: AES--256--GCM](https://img.shields.io/badge/Token%20Vault-AES--256--GCM-success.svg)](core/crypto_vault.py)
 [![OAuth: PKCE S256](https://img.shields.io/badge/OAuth%202.0-RFC%207636%20PKCE-blueviolet.svg)](core/generic_connectors.py)
 
-**GapWise** is an intelligent, real-data-driven career navigation and skill gap closure web application. It identifies individual learner skill gaps, builds personalized visual roadmaps to target careers, tracks learning telemetry, and dynamically adapts when personal goals, study rates, or schedules shift.
+**GapWise** is an intelligent, real-data-driven learning workspace. It adapts to a learner's chosen domain, language or medium, outcome, pace, and learning style. Career navigation is supported, but the product is not limited to coding or job preparation.
 
 ---
 
 ## 🎯 Goal & Core Philosophy
 
-- **Goal**: Find a learner's skill gaps. Build a personalized roadmap to a target career. Track progress. Adapt when goals or results change.
-- **Target Users**: Students, job seekers, and working professionals. All users sign in with Google.
+- **Goal**: Turn a learner-declared direction into measurable practice, evidence, and progress. Adapt when goals or results change.
+- **Target Users**: Anyone learning a subject, preparing for an exam, changing careers, building a craft, or practicing communication. Users create an email/password account or complete Google OAuth.
 - **Strict Data Rule**:
   - **Zero fake, seeded, or mock data**.
   - Retains strictly real user profiles, real assessment attempts, and real external API credentials.
@@ -46,7 +46,9 @@ GapWise/
 │   ├── roadmap_engine.py     # DAG dependency graph, Unlock paths, Career Pivot Simulator & diff
 │   ├── test_engine.py        # Item Response Theory (IRT) adaptive test engine & Code Sandbox
 │   ├── interview_engine.py   # Multi-dimensional rubric mock interview evaluator
-│   ├── ai_mentor.py          # Ada AI Mentor chat, Weekly check-in diagnostic, Explain-Back Mode
+│   ├── ai_mentor.py          # Legacy non-agent product calculations
+│   ├── ai_agents.py          # Model-backed mentor, assessment, interview, and planning agents
+│   ├── ai_providers.py       # Ollama plus online OpenAI-compatible provider adapters
 │   ├── gamification.py       # XP, Levels, Titles, Badges, Personalized Quests, Opt-in Leaderboard
 │   ├── analytics.py          # Learning Twin telemetry, Skill Passport, Ebbinghaus Skill Decay
 │   └── scheduling.py         # Time-budget scheduling dynamically adapting around exams/crunch
@@ -66,8 +68,10 @@ GapWise/
 
 ## 🌟 Key Capabilities
 
-### 1. User Profile & Real Google Sign-In
-- All users sign in with Google using **OAuth 2.0 with PKCE (RFC 7636)**.
+### 1. Real Accounts & Progress Sync
+- Startup requires a real email/password account or Google OAuth before entering the app.
+- Authentication uses PBKDF2 password hashes and HttpOnly session cookies.
+- Google OAuth stores the returned Google token only in the encrypted server-side vault so Gmail/progress connections can be synced without exposing tokens to the browser.
 - Store real profile details, competencies, certifications, completed projects, and target career goals.
 - Self-rate skills (1–5 stars) with instant composite recalculation.
 
@@ -88,19 +92,18 @@ GapWise/
 - Tracks real lessons, assessments, streaks, and milestone completions.
 - **Confidence Meter**: Detects **Dunning-Kruger Risk** (over-confidence) and **Imposter Syndrome** (under-confidence).
 
-### 5. AI Mentor (Ada) & Weekly Diagnostic
-- Interactive guidance tailored to learner gaps.
-- **Weekly Check-in**: Diagnostic questions adjust weekly study budget and learning velocity.
-- **Explain-Back Mode (Feynman Technique)**: Learner teaches a concept in their own words; the agent grades conceptual depth, clarity, and flags misconceptions.
+### 5. Model-backed AI agents
+- Startup defaults to local Ollama with `mimo-v2.6:9b` and a 30,720-token context capacity. If a model rejects that capacity, the provider retries lower capacities automatically.
+- Offline chat, adaptive questions, assessment grading, mock interviews, weekly planning, and Explain-Back all call the configured model; there is no canned reply fallback.
+- Online mode supports OpenAI Responses API and OpenAI-compatible providers such as OpenRouter, Groq, Together, DeepSeek, OpenCode-compatible endpoints, and custom endpoints. API keys remain in process memory and are never stored in SQLite.
 
-### 6. Personalized Tests & Live Code Sandbox
-- **Adaptive IRT Tests**: Difficulty ($\theta$) dynamically adapts after each attempt based on learning rate. Slower learners receive smaller step sizes and scaffolding hints; fast learners receive harder synthesis questions.
-- **Micro-Quizzes in Code**: In-editor challenges pop up directly inside code comments.
-- **Live Code Sandbox**: In-browser Python 3 and JavaScript execution environment with unit test assertion reporting.
+### 6. Personalized Tests & Practice Lab
+- **Adaptive model-generated tests**: Each question is generated for the authenticated learner and stored only for that learner until submission.
+- **Adaptive Practice Lab**: Learners choose any domain, language or medium, and format. The model generates a challenge and evaluates only the response evidence supplied by the learner. It never pretends that code ran or that an external artifact was validated.
 
-### 7. Personalized Mock Interview Agent
-- Role-specific technical & behavioral interview scenarios.
-- Scored evaluations across **Technical Depth**, **Clarity**, **Problem Solving**, and **Communication**.
+### 7. Personalized Interview & Speaking Studio
+- Role-, exam-, presentation-, or outcome-specific scenarios.
+- Optional browser voice input measures filler words, gaps, and thinking time, then includes those measurements in the AI coaching response.
 
 ### 8. Career Pivot Simulator & Roadmap Diff
 - Simulates changing career targets.
@@ -146,7 +149,34 @@ Open your browser to:
 http://localhost:8000
 ```
 
-### 3. Run Automated Tests
+### 3. Configure the model runtime
+
+Install the Python Ollama client and run Ollama locally:
+
+```bash
+python3 -m pip install -r requirements.txt
+ollama serve
+ollama pull mimo-v2.6:9b
+```
+
+GapWise asks for the Ollama host, model, and bounded context window at startup. If Ollama is unavailable, the UI reports that error and does not fabricate an answer.
+
+For online mode, select a provider in startup setup, enter the provider's own API key, base URL, and model name. The key is held only by the running server process.
+
+### 4. Enable real Google OAuth (optional)
+
+Create a Google OAuth web application and add the exact callback URL shown below to its authorized redirect URIs:
+
+```bash
+export GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
+export GOOGLE_CLIENT_SECRET="your-google-client-secret"
+export GOOGLE_REDIRECT_URI="http://127.0.0.1:8000/api/auth/google/callback"
+python3 server.py 8000
+```
+
+If Google OAuth is not configured, use the real email/password registration in the startup screen. No local demo profile is created.
+
+### 5. Run Automated Tests
 ```bash
 # Option A: Directly with Python
 python3 -m unittest discover -s tests -p "test_*.py"

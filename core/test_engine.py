@@ -3,6 +3,11 @@ Personalized Adaptive Test Engine (IRT), Micro-Quizzes in Code & Live Code Sandb
 """
 
 import math
+import os
+import shutil
+import subprocess
+import tempfile
+import time
 from typing import Dict, List, Any, Optional
 from data.seed_data import QUESTION_BANK
 
@@ -82,46 +87,19 @@ class TestEngine:
         }
 
     @staticmethod
-    def get_micro_quiz_in_code() -> Dict[str, Any]:
-        """
-        Generates micro-quizzes that appear directly inside the learner's own code buffer!
-        """
-        return {
-            "title": "Micro-Quiz in Code: Fix the Memory Leak",
-            "skill": "React & JavaScript",
-            "code_template": (
-                "// TODO: Spot the bug inside the subscriber hook below\n"
-                "import { useState, useEffect } from 'react';\n\n"
-                "function useWindowDimension() {\n"
-                "  const [width, setWidth] = useState(window.innerWidth);\n\n"
-                "  useEffect(() => {\n"
-                "    const handleResize = () => setWidth(window.innerWidth);\n"
-                "    window.addEventListener('resize', handleResize);\n"
-                "    // MICRO-QUIZ: What missing line is needed to prevent memory leaks?\n"
-                "    /* [QUIZ_INPUT_TARGET] */\n"
-                "  }, []);\n\n"
-                "  return width;\n"
-                "}"
-            ),
-            "challenge_question": "What clean-up statement must be returned inside useEffect?",
-            "options": [
-                "return () => window.removeEventListener('resize', handleResize);",
-                "return false;",
-                "window.clearInterval(handleResize);",
-                "return window.innerWidth;"
-            ],
-            "correct_option_index": 0,
-            "hint": "Effects must return a teardown callback function that removes the event listener when unmounted."
-        }
-
-    @staticmethod
     def execute_live_code_sandbox(language: str, code: str) -> Dict[str, Any]:
         """
         Runs code in sandbox with test assertions.
         Supports Python and JavaScript.
         """
-        import time
         start_time = time.time()
+        if not code.strip():
+            return {
+                "success": False,
+                "error": "Write code before executing it.",
+                "execution_time_ms": 0,
+                "test_results": []
+            }
 
         if language.lower() in ["python", "py"]:
             # Run code safely with restricted built-ins
@@ -151,17 +129,15 @@ class TestEngine:
                 redirected_out = io.StringIO()
                 sys.stdout = redirected_out
 
-                exec(code, {"__builtins__": allowed_builtins}, local_scope)
-
-                sys.stdout = old_stdout
+                try:
+                    exec(code, {"__builtins__": allowed_builtins}, local_scope)
+                finally:
+                    sys.stdout = old_stdout
                 exec_output = redirected_out.getvalue()
                 elapsed_ms = round((time.time() - start_time) * 1000, 2)
 
-                # Test assertion checks
                 test_results = [
-                    {"test_name": "Test Case 1: Standard input execution", "passed": True, "detail": "Completed without exceptions"},
-                    {"test_name": "Test Case 2: Memory footprint", "passed": True, "detail": "< 2MB heap usage"},
-                    {"test_name": "Test Case 3: Output correctness", "passed": True, "detail": "All assertions verified"}
+                    {"test_name": "Python execution", "passed": True, "detail": "Completed without exceptions"}
                 ]
 
                 return {
@@ -180,17 +156,49 @@ class TestEngine:
                     "execution_time_ms": round((time.time() - start_time) * 1000, 2),
                     "test_results": [{"test_name": "Execution Syntax & Runtime", "passed": False, "detail": str(e)}]
                 }
-        else:
-            # Client-side JavaScript sandbox evaluation
-            return {
-                "success": True,
-                "output": "JavaScript code validated and tested in WebWorker engine.",
-                "execution_time_ms": 14.2,
-                "test_results": [
-                    {"test_name": "ES6+ Syntax validation", "passed": True, "detail": "Zero AST syntax errors"},
-                    {"test_name": "Unit test suite", "passed": True, "detail": "3 passed, 0 failed"}
-                ],
-                "xp_earned": 60
-            }
+        if language.lower() in ["javascript", "js", "node"]:
+            node = shutil.which("node")
+            if not node:
+                return {
+                    "success": False,
+                    "error": "Node.js is not installed on the server; JavaScript execution is unavailable.",
+                    "execution_time_ms": round((time.time() - start_time) * 1000, 2),
+                    "test_results": []
+                }
+            script_path = None
+            try:
+                with tempfile.NamedTemporaryFile("w", suffix=".js", encoding="utf-8", delete=False) as handle:
+                    handle.write(code)
+                    script_path = handle.name
+                completed = subprocess.run(
+                    [node, script_path], capture_output=True, text=True, timeout=8, check=False
+                )
+                output = (completed.stdout or "") + (completed.stderr or "")
+                passed = completed.returncode == 0
+                return {
+                    "success": passed,
+                    "output": output or ("[Execution finished with exit code 0 (No stdout produced)]" if passed else ""),
+                    "error": None if passed else "JavaScript exited with a non-zero status.",
+                    "execution_time_ms": round((time.time() - start_time) * 1000, 2),
+                    "test_results": [{"test_name": "Node.js execution", "passed": passed, "detail": "Process exited cleanly" if passed else f"Exit code {completed.returncode}"}],
+                    "xp_earned": 60 if passed else 0
+                }
+            except subprocess.TimeoutExpired:
+                return {
+                    "success": False,
+                    "error": "JavaScript execution exceeded the 8 second limit.",
+                    "execution_time_ms": round((time.time() - start_time) * 1000, 2),
+                    "test_results": []
+                }
+            finally:
+                if script_path and os.path.exists(script_path):
+                    os.unlink(script_path)
+
+        return {
+            "success": False,
+            "error": f"Unsupported sandbox language: {language}",
+            "execution_time_ms": round((time.time() - start_time) * 1000, 2),
+            "test_results": []
+        }
 
 test_engine = TestEngine()

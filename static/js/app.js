@@ -13,16 +13,38 @@ const STATE = {
   currentTestQuestion: null,
   selectedTestOption: null,
   currentInterviewQuestion: null,
+  currentPracticeChallenge: null,
+  voiceRecognition: null,
+  voiceRecording: false,
+  voiceStartedAt: null,
+  voiceLastResultAt: null,
+  voicePauses: [],
   connectors: {},
   activeOAuthFlow: null,
-  sandboxLanguage: 'python'
+  sandboxLanguage: 'python',
+  theme: 'system',
+  googleConfig: null,
+  authMode: 'login',
+  modelMode: 'offline',
+  providerCatalog: null,
+  aiStatus: null,
+  chatHistory: []
 };
 
+// The app must be served by the backend so session cookies and API requests
+// share an origin. If someone double-clicks index.html, send them to the live
+// server instead of allowing every auth/model request to fail from file://.
+const GAPWISE_BACKEND_ORIGIN = 'http://127.0.0.1:8000';
+if (window.location.protocol === 'file:') {
+  window.location.replace(`${GAPWISE_BACKEND_ORIGIN}/`);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
+  initTheme();
   await fetchUsersList();
   await fetchUserData();
   await refreshActiveTab();
-  initCodeSandboxDefault();
+  await initStartupGate();
 });
 
 async function apiCall(endpoint, method = 'GET', data = null) {
@@ -32,11 +54,218 @@ async function apiCall(endpoint, method = 'GET', data = null) {
       headers: { 'Content-Type': 'application/json' }
     };
     if (data) opts.body = JSON.stringify(data);
-    const res = await fetch(endpoint, opts);
-    return await res.json();
+    const requestURL = endpoint.startsWith('http') ? endpoint : `${window.location.protocol === 'file:' ? GAPWISE_BACKEND_ORIGIN : ''}${endpoint}`;
+    const res = await fetch(requestURL, opts);
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) return { error: payload.error || `Request failed (${res.status})`, status: res.status };
+    return payload;
   } catch (err) {
     console.error(`API Call failed on ${endpoint}:`, err);
     return { error: err.message };
+  }
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  }[char]));
+}
+
+function initTheme() {
+  const savedTheme = localStorage.getItem('gapwise-theme') || 'system';
+  applyTheme(savedTheme);
+  const media = window.matchMedia('(prefers-color-scheme: dark)');
+  if (media.addEventListener) media.addEventListener('change', () => {
+    if (STATE.theme === 'system') applyTheme('system');
+  });
+}
+
+function applyTheme(theme) {
+  const allowed = ['system', 'light', 'dark'];
+  STATE.theme = allowed.includes(theme) ? theme : 'system';
+  document.documentElement.dataset.theme = STATE.theme;
+  const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+  document.body.classList.toggle('dark-theme', STATE.theme === 'dark' || (STATE.theme === 'system' && prefersDark));
+  const label = STATE.theme[0].toUpperCase() + STATE.theme.slice(1);
+  const toggle = document.getElementById('theme-toggle');
+  const toggleLabel = document.getElementById('theme-toggle-label');
+  const toggleIcon = document.getElementById('theme-toggle-icon');
+  if (toggle) toggle.setAttribute('aria-label', `Theme: ${label}. Switch theme`);
+  if (toggleLabel) toggleLabel.textContent = label;
+  if (toggleIcon) toggleIcon.textContent = STATE.theme === 'dark' ? '☾' : STATE.theme === 'light' ? '☀' : '◐';
+}
+
+function cycleTheme() {
+  const order = ['system', 'light', 'dark'];
+  const next = order[(order.indexOf(STATE.theme) + 1) % order.length];
+  localStorage.setItem('gapwise-theme', next);
+  applyTheme(next);
+}
+
+async function initStartupGate() {
+  const [config, aiStatus, providers] = await Promise.all([
+    apiCall('/api/auth/config'), apiCall('/api/ai/status'), apiCall('/api/ai/providers')
+  ]);
+  STATE.googleConfig = config;
+  STATE.aiStatus = aiStatus;
+  STATE.providerCatalog = providers;
+  updateModelStatusPill();
+  populateProviderChoices(providers);
+  const authReady = Boolean(STATE.user?.id);
+  const modelReady = Boolean(aiStatus?.configured);
+  if (!authReady || !modelReady) openStartupModal();
+  else closeStartupModal();
+  updateStartupReadiness();
+}
+
+function openStartupModal() {
+  document.getElementById('modal-startup')?.classList.remove('hidden');
+  loadOllamaModels();
+}
+
+function closeStartupModal() {
+  document.getElementById('modal-startup')?.classList.add('hidden');
+}
+
+function setStartupAuthMode(mode) {
+  STATE.authMode = mode;
+  const register = mode === 'register';
+  document.getElementById('startup-login-tab').classList.toggle('active', !register);
+  document.getElementById('startup-register-tab').classList.toggle('active', register);
+  document.getElementById('startup-name-label').classList.toggle('hidden', !register);
+  document.getElementById('startup-name').classList.toggle('hidden', !register);
+  document.getElementById('startup-profile-fields').classList.toggle('hidden', !register);
+  document.getElementById('startup-password').setAttribute('autocomplete', register ? 'new-password' : 'current-password');
+  document.getElementById('startup-auth-submit').textContent = register ? 'Create account' : 'Sign in';
+  document.getElementById('startup-auth-status').textContent = '';
+}
+
+function setModelMode(mode) {
+  STATE.modelMode = mode;
+  const online = mode === 'online';
+  document.getElementById('startup-offline-tab').classList.toggle('active', !online);
+  document.getElementById('startup-online-tab').classList.toggle('active', online);
+  document.getElementById('offline-model-fields').classList.toggle('hidden', online);
+  document.getElementById('online-model-fields').classList.toggle('hidden', !online);
+}
+
+function populateProviderChoices(catalog) {
+  const select = document.getElementById('online-provider');
+  if (!select || !catalog?.online) return;
+  select.innerHTML = Object.entries(catalog.online).map(([id, info]) => `<option value="${escapeHtml(id)}">${escapeHtml(info.label)}</option>`).join('');
+  applyProviderPreset();
+}
+
+function applyProviderPreset() {
+  const provider = document.getElementById('online-provider')?.value;
+  const preset = STATE.providerCatalog?.online?.[provider];
+  if (!preset) return;
+  const base = document.getElementById('online-base-url');
+  if (base && !base.value) base.value = preset.base_url || '';
+  const model = document.getElementById('online-model');
+  if (model && !model.value && preset.models?.length) model.value = preset.models[0];
+}
+
+async function loadOllamaModels() {
+  const result = await apiCall('/api/ai/ollama/models');
+  const list = document.getElementById('ollama-model-list');
+  if (list && Array.isArray(result?.models)) list.innerHTML = result.models.map(model => `<option value="${escapeHtml(model)}"></option>`).join('');
+  const status = document.getElementById('startup-ai-status');
+  if (status && result?.error && STATE.modelMode === 'offline') status.textContent = result.error;
+}
+
+async function submitStartupAuth() {
+  const email = document.getElementById('startup-email').value.trim();
+  const password = document.getElementById('startup-password').value;
+  const endpoint = STATE.authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+  const payload = { email, password };
+  if (STATE.authMode === 'register') {
+    payload.name = document.getElementById('startup-name').value.trim();
+    payload.goal_domain = document.getElementById('startup-domain').value.trim();
+    payload.target_outcome = document.getElementById('startup-outcome').value.trim();
+    payload.experience_level = document.getElementById('startup-experience').value.trim();
+    payload.preferred_learning_style = document.getElementById('startup-learning-style').value.trim();
+    payload.target_role = payload.target_outcome;
+  }
+  const status = document.getElementById('startup-auth-status');
+  status.className = 'setup-status';
+  status.textContent = 'Checking account…';
+  const result = await apiCall(endpoint, 'POST', payload);
+  if (result?.user) {
+    handleAuthSuccess(result.user);
+    status.className = 'setup-status success';
+    status.textContent = 'Account connected. Progress will sync to this email.';
+    updateStartupReadiness();
+  } else {
+    status.className = 'setup-status error';
+    status.textContent = result?.error || 'Could not authenticate.';
+  }
+}
+
+function beginGoogleOAuth() {
+  if (!STATE.googleConfig?.google_ready) {
+    document.getElementById('startup-auth-status').textContent = 'Google OAuth needs GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and a matching redirect URI on the server.';
+    return;
+  }
+  window.location.href = `${window.location.protocol === 'file:' ? GAPWISE_BACKEND_ORIGIN : ''}/api/auth/google/start`;
+}
+
+async function configureStartupAI() {
+  const payload = {
+    mode: STATE.modelMode,
+    context_window: Number(document.getElementById('ai-context-window').value || 30720)
+  };
+  if (STATE.modelMode === 'offline') {
+    payload.model = document.getElementById('ollama-model').value.trim() || 'mimo-v2.6:9b';
+    payload.host = document.getElementById('ollama-host').value.trim();
+  } else {
+    payload.provider = document.getElementById('online-provider').value;
+    payload.api_key = document.getElementById('online-api-key').value.trim();
+    payload.base_url = document.getElementById('online-base-url').value.trim();
+    payload.model = document.getElementById('online-model').value.trim();
+  }
+  const status = document.getElementById('startup-ai-status');
+  status.className = 'setup-status';
+  status.textContent = 'Connecting to model…';
+  const result = await apiCall('/api/ai/config', 'POST', payload);
+  if (result?.configured) {
+    STATE.aiStatus = result;
+    updateModelStatusPill();
+    status.className = 'setup-status success';
+    status.textContent = `${result.provider || 'Ollama'} / ${result.model} is ready. API keys remain in server memory only.`;
+    updateStartupReadiness();
+  } else {
+    status.className = 'setup-status error';
+    status.textContent = result?.error || 'Could not connect to the model.';
+  }
+}
+
+function updateModelStatusPill() {
+  const pill = document.getElementById('model-status-pill');
+  const label = document.getElementById('model-status-label');
+  if (!pill || !label) return;
+  if (STATE.aiStatus?.configured) {
+    pill.classList.add('ready');
+    label.textContent = `${STATE.aiStatus.provider || 'ollama'} · ${STATE.aiStatus.model}`;
+  } else {
+    pill.classList.remove('ready');
+    label.textContent = 'AI setup';
+  }
+}
+
+function updateStartupReadiness() {
+  const ready = Boolean(STATE.user?.id && STATE.aiStatus?.configured);
+  const button = document.getElementById('startup-enter-btn');
+  const label = document.getElementById('startup-ready-status');
+  if (button) button.disabled = !ready;
+  if (label) label.textContent = ready ? 'Everything is ready. Your data and model choice are connected.' : 'Complete account and AI setup to enter GapWise.';
+}
+
+function finishStartupSetup() {
+  if (STATE.user?.id && STATE.aiStatus?.configured) {
+    sessionStorage.setItem('gapwise-startup-complete', '1');
+    closeStartupModal();
+    refreshActiveTab();
   }
 }
 
@@ -75,7 +304,7 @@ function renderHeaderProfile(user) {
     const select = document.getElementById('user-select');
     if (select) select.value = user.id;
   } else {
-    btnLabel.textContent = 'Sign in with Google';
+    btnLabel.textContent = 'Sign in / setup';
   }
 }
 
@@ -91,41 +320,23 @@ async function switchUser(userId) {
 }
 
 function openGoogleAuthModal() {
-  document.getElementById('modal-google-auth').classList.remove('hidden');
+  openStartupModal();
 }
 function closeGoogleAuthModal() {
-  document.getElementById('modal-google-auth').classList.add('hidden');
+  // Kept as a compatibility hook for existing bookmarks; startup owns auth now.
 }
 function openProfileModal() {
   openGoogleAuthModal();
 }
 
-async function submitGoogleAuth() {
-  const email = document.getElementById('auth-email-input').value.trim();
-  const name = document.getElementById('auth-name-input').value.trim() || 'Learner';
-  const userType = document.getElementById('auth-type-input').value;
-  const targetRole = document.getElementById('auth-role-input').value;
-
-  if (!email) {
-    alert('Please enter your Google email address.');
-    return;
-  }
-
-  const res = await apiCall('/api/auth/google', 'POST', {
-    email,
-    name,
-    user_type: userType,
-    target_role: targetRole,
-    access_token: `google_oauth_token_${Date.now()}`
-  });
-
+function handleAuthSuccess(user) {
   closeGoogleAuthModal();
-  if (res && res.user) {
-    STATE.user = res.user;
-    await fetchUsersList();
+  STATE.user = user;
+  updateStartupReadiness();
+  fetchUsersList().then(() => {
     renderHeaderProfile(STATE.user);
-    await refreshActiveTab();
-  }
+    refreshActiveTab();
+  });
 }
 
 // --- TAB SWITCHER ---
@@ -183,27 +394,37 @@ async function renderDashboard() {
   const userType = (STATE.user && STATE.user.user_type) ? STATE.user.user_type.toUpperCase() : 'LEARNER';
   document.getElementById('dash-user-type').textContent = `${userType} PROFILE`;
 
-  // Career Banner & Match Gauge
+  // Goal banner & match gauge. Never expose a benchmark fallback when no goal is declared.
   if (matchData && !matchData.error) {
-    document.getElementById('dash-target-role').textContent = matchData.target_role;
-    document.getElementById('dash-role-desc').textContent = matchData.description;
-    document.getElementById('dash-salary').textContent = matchData.salary_range || '$100k+';
-    document.getElementById('dash-growth').textContent = matchData.demand_growth || '+20% YoY';
-    document.getElementById('dash-weeks').textContent = `${matchData.estimated_weeks_to_ready} Weeks`;
+    const goalParts = [STATE.user?.goal_domain, STATE.user?.target_outcome].filter(Boolean).map(value => value.trim());
+    const declaredDirection = goalParts.join(' · ');
+    const hasGoal = Boolean(declaredDirection);
+    const hasBenchmark = Boolean(matchData.match_available);
+    document.getElementById('dash-target-role').textContent = declaredDirection || 'Not selected';
+    document.getElementById('dash-role-desc').textContent = hasGoal
+      ? `Your roadmap and practice are being tailored to ${declaredDirection}. Readiness will be based on evidence you create here.`
+      : 'Declare an area and outcome during setup to make GapWise personal to you.';
+    document.getElementById('dash-salary').textContent = hasBenchmark ? (matchData.salary_range || 'Not available') : 'Not selected';
+    document.getElementById('dash-growth').textContent = hasBenchmark ? (matchData.demand_growth || 'Not available') : 'Not selected';
+    document.getElementById('dash-weeks').textContent = hasBenchmark && matchData.estimated_weeks_to_ready
+      ? `~${matchData.estimated_weeks_to_ready} weeks` : 'Not selected';
 
-    const matchPct = Math.round(matchData.match_percent || 0);
+    const matchPct = hasGoal && hasBenchmark ? Math.round(matchData.match_percent || 0) : 0;
     document.getElementById('dash-match-percent').textContent = `${matchPct}%`;
     document.getElementById('dash-gauge-fill').setAttribute('stroke-dasharray', `${matchPct}, 100`);
 
-    const gapCard = document.getElementById('dash-gap-alert-card');
     const gapExplanation = document.getElementById('dash-gap-explanation');
 
-    if (!matchData.has_skills) {
-      gapExplanation.innerHTML = `No skills added to your profile yet. Add your current competencies (e.g. Python, SQL, HTML, etc.) to calculate your skill gaps against <strong>${matchData.target_role}</strong>.`;
+    if (!hasGoal) {
+      gapExplanation.textContent = 'Choose a growth domain and desired outcome to start a personalized evidence trail.';
+    } else if (!hasBenchmark) {
+      gapExplanation.textContent = 'Your direction is saved. Add skills or generate model-backed practice to build evidence; no benchmark is available for this direction yet.';
+    } else if (!matchData.has_skills) {
+      gapExplanation.innerHTML = `No skills added to your profile yet. Add current competencies to calculate evidence against <strong>${escapeHtml(matchData.target_role)}</strong>.`;
     } else {
       const missing = matchData.missing_skills || [];
-      const missingTags = missing.map(m => `<span class="tag-missing">${m.skill}</span>`).join(' ');
-      gapExplanation.innerHTML = `Based on your profile skills, readiness for <strong>${matchData.target_role}</strong> is ${matchPct}%. High priority gaps: ${missingTags || '<strong class="text-success">Zero missing gaps! Ready for role.</strong>'}`;
+      const missingTags = missing.map(m => `<span class="tag-missing">${escapeHtml(m.skill)}</span>`).join(' ');
+      gapExplanation.innerHTML = `Based on your profile skills, readiness for <strong>${escapeHtml(matchData.target_role)}</strong> is ${matchPct}%. High priority gaps: ${missingTags || '<strong class="text-success">Zero missing gaps! Ready for role.</strong>'}`;
     }
   }
 
@@ -257,29 +478,33 @@ async function renderDashboard() {
 
   // Learning Twin Telemetry
   if (twinData && !twinData.error) {
-    document.getElementById('twin-velocity').textContent = `${twinData.study_velocity_xp_per_day} XP/day`;
-    document.getElementById('twin-retention').textContent = `${Math.round(twinData.retention_stability_factor * 100)}% Stability`;
-    document.getElementById('twin-peak').textContent = twinData.peak_focus_hours;
-    document.getElementById('twin-predicted').textContent = twinData.predicted_weeks_remaining > 0 ? `In ${twinData.predicted_weeks_remaining} Weeks` : 'Add Skills';
-    document.getElementById('twin-modality').textContent = twinData.preferred_format;
+    const twinHasGoal = Boolean(twinData.has_goal);
+    const twinHasData = Boolean(twinData.has_data);
+    document.getElementById('twin-status').textContent = twinHasData ? 'ACTIVE' : 'WAITING';
+    document.getElementById('twin-velocity').textContent = twinHasData ? `${twinData.study_velocity_xp_per_day} XP/day` : 'Not available';
+    document.getElementById('twin-retention').textContent = twinHasData ? `${Math.round(twinData.retention_stability_factor * 100)}% Stability` : 'Not available';
+    document.getElementById('twin-peak').textContent = twinHasGoal ? twinData.peak_focus_hours : 'Not selected';
+    document.getElementById('twin-predicted').textContent = twinHasData && twinData.predicted_weeks_remaining > 0
+      ? `In ${twinData.predicted_weeks_remaining} weeks` : (twinHasGoal ? 'Awaiting activity' : 'Not selected');
+    document.getElementById('twin-modality').textContent = twinData.preferred_format || 'Not selected';
   }
 
   // Quests List
   if (gamifyData && gamifyData.quests) {
     document.getElementById('level-title-badge').textContent = gamifyData.level_info.title;
     const questsList = document.getElementById('quests-container');
-    questsList.innerHTML = gamifyData.quests.map(q => `
+    questsList.innerHTML = gamifyData.quests.length ? gamifyData.quests.map(q => `
       <div class="quest-item">
         <div class="quest-left">
           <span class="quest-icon">${q.completed ? '✅' : '🎯'}</span>
           <div>
-            <div class="quest-title">${q.title}</div>
-            <div class="quest-desc">${q.description}</div>
+            <div class="quest-title">${escapeHtml(q.title)}</div>
+            <div class="quest-desc">${escapeHtml(q.description)}</div>
           </div>
         </div>
-        <span class="badge-xp text-accent">+${q.xp_reward} XP</span>
+        <span class="badge-xp text-accent">+${escapeHtml(q.xp_reward)} XP</span>
       </div>
-    `).join('');
+    `).join('') : '<div class="empty-state-card"><div class="empty-state-title">No quests yet</div><div class="empty-state-desc">Declare a goal to receive personalized quests.</div></div>';
   }
 }
 
@@ -293,8 +518,8 @@ async function renderRoadmap() {
     container.innerHTML = `
       <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
         <h3>No Roadmap Generated</h3>
-        <p style="margin: 0.5rem 0 1rem;">Select a career target to generate your visual dependency path.</p>
-        <button class="btn btn-primary" onclick="setTab('skills')">Select Target Role</button>
+        <p style="margin: 0.5rem 0 1rem;">Complete your growth domain and desired outcome, then connect a model to generate an evidence-based roadmap.</p>
+        <button class="btn btn-primary" onclick="openStartupModal()">Open profile and AI setup</button>
       </div>
     `;
     return;
@@ -344,6 +569,9 @@ async function renderRoadmap() {
           ${statusBadge}
         </div>
         <div class="node-title">${node.title}</div>
+        <div class="node-description">${escapeHtml(node.description || node.why_this_pick || '')}</div>
+        <div class="node-instructions">${(node.instructions || []).map(step => `<div>• ${escapeHtml(step)}</div>`).join('')}</div>
+        <div class="node-evidence"><strong>Evidence:</strong> ${escapeHtml(node.evidence || node.practical_exercise || 'Declare completion evidence with the AI mentor.')}</div>
         <div class="node-meta">
           <span>⏱ ${node.duration_hours}h</span>
           <span class="text-accent">+${node.xp_reward} XP</span>
@@ -546,11 +774,17 @@ async function applyCareerPivot(newRole) {
 }
 
 // ==========================================
-// 4. ADAPTIVE TESTS & LIVE CODE SANDBOX
+// 4. ADAPTIVE CHECKS & PRACTICE
 // ==========================================
 async function loadNextQuestion() {
   const data = await apiCall('/api/test/next');
-  if (!data || data.error) return;
+  if (!data || data.error) {
+    const question = document.getElementById('test-question-text');
+    const options = document.getElementById('test-options-container');
+    if (question) question.textContent = data?.error || 'Sign in and connect a model to generate a live question.';
+    if (options) options.innerHTML = `<button class="btn btn-primary" onclick="openStartupModal()">Open setup</button>`;
+    return;
+  }
 
   STATE.currentTestQuestion = data.question;
   STATE.selectedTestOption = null;
@@ -622,65 +856,56 @@ async function submitTestAnswer() {
   await fetchUserData();
 }
 
-function initCodeSandboxDefault() {
-  const pyDefault = (
-    "# GapWise Python 3 Code Sandbox - Live Execution Engine\n"
-    "def calculate_event_loop_throughput(tasks, worker_threads):\n"
-    "    return sum(tasks) / max(1, worker_threads)\n\n"
-    "throughput = calculate_event_loop_throughput([120, 80, 200, 150], 4)\n"
-    "print(f'Computed Worker Throughput: {throughput:.2f} ops/sec')\n"
-  );
-  const editor = document.getElementById('sandbox-code-editor');
-  if (editor && !editor.value) {
-    editor.value = pyDefault;
+async function generatePracticeChallenge() {
+  const domain = document.getElementById('practice-domain').value.trim();
+  const language = document.getElementById('practice-language').value.trim();
+  const format = document.getElementById('practice-format').value;
+  const empty = document.getElementById('practice-empty');
+  const content = document.getElementById('practice-challenge-content');
+  if (!domain || !language) {
+    empty.textContent = 'Choose both a domain and a language or medium before generating a challenge.';
+    return;
   }
+  empty.textContent = 'Generating a challenge from your profile…';
+  content.classList.add('hidden');
+  const query = new URLSearchParams({ domain, language, format });
+  const res = await apiCall(`/api/practice/challenge?${query.toString()}`);
+  if (!res || res.error) {
+    empty.textContent = res?.error || 'The practice agent could not generate a challenge.';
+    return;
+  }
+  STATE.currentPracticeChallenge = res;
+  document.getElementById('practice-challenge-title').textContent = `${res.title} · ${res.language}`;
+  document.getElementById('practice-challenge-prompt').textContent = res.prompt;
+  document.getElementById('practice-challenge-instructions').innerHTML = (res.instructions || []).map(item => `<li>${escapeHtml(item)}</li>`).join('');
+  document.getElementById('practice-response').value = res.starter || '';
+  document.getElementById('practice-feedback').classList.add('hidden');
+  empty.classList.add('hidden');
+  content.classList.remove('hidden');
 }
 
-function setSandboxLang(lang) {
-  STATE.sandboxLanguage = lang;
-  document.querySelectorAll('.btn-lang').forEach(b => {
-    b.classList.toggle('active', b.textContent.toLowerCase().includes(lang));
-  });
-
-  const editor = document.getElementById('sandbox-code-editor');
-  if (lang === 'python') {
-    initCodeSandboxDefault();
-  } else {
-    editor.value = (
-      "// GapWise JavaScript (ES6) Sandbox\n"
-      "const fibonacci = (n) => n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);\n"
-      "console.log('Fibonacci term 8:', fibonacci(8));\n"
-    );
+async function evaluatePracticeChallenge() {
+  const challenge = STATE.currentPracticeChallenge;
+  const answer = document.getElementById('practice-response').value.trim();
+  const feedback = document.getElementById('practice-feedback');
+  if (!challenge || !answer) {
+    feedback.className = 'feedback-box feedback-wrong';
+    feedback.textContent = 'Write a response before evaluating it.';
+    feedback.classList.remove('hidden');
+    return;
   }
-}
-
-async function runSandboxCode() {
-  const code = document.getElementById('sandbox-code-editor').value;
-  const term = document.getElementById('sandbox-terminal-out');
-  term.textContent = 'Executing sandbox test assertions...';
-
-  const res = await apiCall('/api/test/code_sandbox', 'POST', {
-    language: STATE.sandboxLanguage,
-    code
-  });
-
-  if (res && res.success) {
-    const tests = (res.test_results || []).map(t => `  ✓ ${t.test_name}: ${t.detail}`).join('\n');
-    term.textContent = `[STDOUT]\n${res.output}\n\n[TEST RESULTS - ${res.execution_time_ms}ms]\n${tests}\n\n✓ All assertions passed. +${res.xp_earned || 60} XP awarded!`;
-    await fetchUserData();
-  } else {
-    term.textContent = `[EXECUTION ERROR]\n${res.error || 'Execution failed.'}`;
+  feedback.className = 'feedback-box';
+  feedback.textContent = 'Evaluating observed evidence…';
+  feedback.classList.remove('hidden');
+  const res = await apiCall('/api/practice/evaluate', 'POST', { challenge_id: challenge.id, answer });
+  if (!res || res.error) {
+    feedback.className = 'feedback-box feedback-wrong';
+    feedback.textContent = res?.error || 'Evaluation failed.';
+    return;
   }
-}
-
-async function loadMicroQuizCode() {
-  const quiz = await apiCall('/api/test/micro_quiz');
-  if (quiz && quiz.code_template) {
-    const editor = document.getElementById('sandbox-code-editor');
-    editor.value = quiz.code_template;
-    const term = document.getElementById('sandbox-terminal-out');
-    term.textContent = `[MICRO-QUIZ IN CODE ACTIVATED]\nChallenge: ${quiz.challenge_question}\nHint: ${quiz.hint}\n\nInspect the code editor and fix the commented hook.`;
-  }
+  feedback.className = 'feedback-box feedback-correct';
+  feedback.innerHTML = `<strong>${escapeHtml(res.score)}/100 · ${escapeHtml(res.verdict)}</strong><p><b>Strengths:</b> ${(res.strengths || []).map(escapeHtml).join(' · ') || 'None declared'}</p><p><b>Next steps:</b> ${(res.improvements || []).map(escapeHtml).join(' · ') || 'None declared'}</p><small>Evidence observed: ${(res.evidence_observed || []).map(escapeHtml).join(' · ') || 'No external validation was claimed'} · +${res.xp_awarded || 0} XP</small>`;
+  await fetchUserData();
 }
 
 // ==========================================
@@ -688,23 +913,88 @@ async function loadMicroQuizCode() {
 // ==========================================
 async function renderInterviewArena() {
   const data = await apiCall('/api/mock_interview');
-  if (!data || !data.questions) return;
+  if (!data || data.error || !data.questions) {
+    document.getElementById('interview-q-text').textContent = data?.error || 'Sign in and connect a model to generate an interview question.';
+    return;
+  }
 
   const q = data.questions[0];
   STATE.currentInterviewQuestion = q;
 
-  document.getElementById('interview-role-label').textContent = data.target_role;
+  document.getElementById('interview-role-label').textContent = data.target_role || STATE.user?.target_outcome || STATE.user?.goal_domain || 'your chosen outcome';
   document.getElementById('interview-q-category').textContent = q.category;
   document.getElementById('interview-q-text').textContent = `"${q.question}"`;
 }
 
-function fillSampleInterviewAnswer() {
-  if (STATE.currentInterviewQuestion && STATE.currentInterviewQuestion.sample_good_answer) {
-    document.getElementById('interview-answer-input').value = STATE.currentInterviewQuestion.sample_good_answer;
+function toggleInterviewVoice() {
+  if (STATE.voiceRecording) {
+    stopInterviewVoice();
+    return;
+  }
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const status = document.getElementById('interview-voice-status');
+  if (!Recognition) {
+    status.textContent = 'This browser does not expose speech recognition. You can still type your answer.';
+    status.className = 'setup-status error';
+    return;
+  }
+  const recognition = new Recognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = navigator.language || 'en-US';
+  STATE.voiceRecognition = recognition;
+  STATE.voiceRecording = true;
+  STATE.voiceStartedAt = performance.now();
+  STATE.voiceLastResultAt = performance.now();
+  STATE.voicePauses = [];
+  document.getElementById('interview-voice-btn').textContent = '⏹ Stop voice input';
+  status.textContent = `Listening in ${recognition.lang}… speak naturally; pauses over 1.2 seconds are measured.`;
+  status.className = 'setup-status success';
+  recognition.onresult = event => {
+    const now = performance.now();
+    if (STATE.voiceLastResultAt && now - STATE.voiceLastResultAt > 1200) STATE.voicePauses.push((now - STATE.voiceLastResultAt) / 1000);
+    STATE.voiceLastResultAt = now;
+    let transcript = '';
+    for (let i = 0; i < event.results.length; i++) transcript += event.results[i][0].transcript;
+    document.getElementById('interview-answer-input').value = transcript;
+  };
+  recognition.onerror = event => {
+    status.textContent = `Voice input error: ${event.error}. You can continue by typing.`;
+    status.className = 'setup-status error';
+    stopInterviewVoice(true);
+  };
+  recognition.onend = () => {
+    if (STATE.voiceRecording) {
+      try { recognition.start(); } catch (_) { stopInterviewVoice(true); }
+    }
+  };
+  recognition.start();
+}
+
+function stopInterviewVoice(silent = false) {
+  const recognition = STATE.voiceRecognition;
+  if (recognition) {
+    recognition.onend = null;
+    try { recognition.stop(); } catch (_) { /* already stopped */ }
+  }
+  STATE.voiceRecording = false;
+  const duration = STATE.voiceStartedAt ? (performance.now() - STATE.voiceStartedAt) / 1000 : 0;
+  const longest = STATE.voicePauses.length ? Math.max(...STATE.voicePauses) : 0;
+  const answer = document.getElementById('interview-answer-input').value;
+  const fillers = (answer.toLowerCase().match(/\b(um|uh|like|you know|actually|basically)\b/g) || []).length;
+  const metrics = document.getElementById('interview-voice-metrics');
+  metrics.textContent = `${Math.round(duration)}s · ${fillers} filler words · ${STATE.voicePauses.length} thinking pauses · longest ${longest.toFixed(1)}s`;
+  metrics.classList.remove('hidden');
+  document.getElementById('interview-voice-btn').textContent = '🎙 Start voice input';
+  if (!silent) {
+    const status = document.getElementById('interview-voice-status');
+    status.textContent = 'Voice capture stopped. Review the transcript before submitting.';
+    status.className = 'setup-status';
   }
 }
 
 async function submitInterviewAnswer() {
+  if (STATE.voiceRecording) stopInterviewVoice();
   const answer = document.getElementById('interview-answer-input').value;
   if (!answer.trim()) {
     alert('Please enter your response before submitting.');
@@ -712,9 +1002,16 @@ async function submitInterviewAnswer() {
   }
 
   const q = STATE.currentInterviewQuestion;
+  const voiceText = document.getElementById('interview-voice-metrics').textContent || '';
   const res = await apiCall('/api/mock_interview/submit', 'POST', {
     question_id: q.id,
-    answer
+    answer,
+    voice_metrics: {
+      summary: voiceText,
+      filler_word_count: (answer.toLowerCase().match(/\b(um|uh|like|you know|actually|basically)\b/g) || []).length,
+      pause_count: STATE.voicePauses.length,
+      longest_pause_seconds: STATE.voicePauses.length ? Math.max(...STATE.voicePauses) : 0
+    }
   });
 
   if (!res || res.error) return;
@@ -728,7 +1025,7 @@ async function submitInterviewAnswer() {
       <div class="card-header">
         <div>
           <h3 class="card-title">Interview Rubric Evaluation</h3>
-          <p class="card-sub">AI Scored Performance Across 4 Core Engineering Dimensions</p>
+          <p class="card-sub">AI-scored performance across four core dimensions</p>
         </div>
         <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent-cyan);">${res.composite_score}/100</div>
       </div>
@@ -736,7 +1033,7 @@ async function submitInterviewAnswer() {
       <div class="rubric-grid">
         <div class="rubric-score-box">
           <div class="rsb-num">${rb.technical_depth}%</div>
-          <div class="rsb-label">Technical Depth</div>
+          <div class="rsb-label">Subject Depth</div>
         </div>
         <div class="rubric-score-box">
           <div class="rsb-num">${rb.clarity}%</div>
@@ -761,6 +1058,7 @@ async function submitInterviewAnswer() {
         <ul style="margin: 0.4rem 0 0.8rem 1.25rem; font-size: 0.85rem;">
           ${res.improvements.map(i => `<li>${i}</li>`).join('')}
         </ul>
+        ${res.delivery_feedback?.length ? `<strong class="text-accent">Delivery feedback:</strong><ul style="margin: 0.4rem 0 0.8rem 1.25rem; font-size: 0.85rem;">${res.delivery_feedback.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : ''}
       </div>
       <div style="text-align: right; font-weight: 700; color: var(--accent-emerald);">+${res.xp_earned} XP Awarded</div>
     </div>
@@ -774,13 +1072,7 @@ async function submitInterviewAnswer() {
 async function renderMentorChat() {
   const container = document.getElementById('chat-messages-container');
   if (!container.innerHTML.trim()) {
-    const learnerName = STATE.user ? STATE.user.name : 'Learner';
-    container.innerHTML = `
-      <div class="chat-msg msg-mentor">
-        <strong>Ada • AI Mentor:</strong>
-        <p>Hello ${learnerName}! I'm GapWise's AI Career Mentor. I track your skill gaps and assist with your roadmap, code exercises, or study schedule. How can I help you today?</p>
-      </div>
-    `;
+    container.innerHTML = `<div class="chat-empty-state"><strong>Ada is ready when you are.</strong><p>Your first message will be sent to the configured ${escapeHtml(STATE.aiStatus?.provider || 'AI')} model with your authenticated profile context.</p></div>`;
   }
 }
 
@@ -791,24 +1083,31 @@ async function sendMentorMessage(e) {
   if (!msg) return;
 
   const container = document.getElementById('chat-messages-container');
-  container.innerHTML += `
-    <div class="chat-msg msg-user" style="text-align: right; margin: 0.5rem 0;">
-      <span style="background: rgba(99, 102, 241, 0.2); padding: 0.5rem 1rem; border-radius: 12px; display: inline-block;">
-        ${msg}
-      </span>
-    </div>
-  `;
+  const empty = container.querySelector('.chat-empty-state');
+  if (empty) empty.remove();
+  container.insertAdjacentHTML('beforeend', `<div class="chat-msg msg-user chat-bubble-row"><span class="chat-bubble user-bubble">${escapeHtml(msg)}</span></div>`);
   input.value = '';
+  input.disabled = true;
+  const sendButton = e.submitter || document.querySelector('.chat-input-bar button[type="submit"]');
+  if (sendButton) sendButton.disabled = true;
+  const typingId = `typing-${Date.now()}`;
+  container.insertAdjacentHTML('beforeend', `<div id="${typingId}" class="chat-msg msg-mentor chat-bubble-row"><span class="chat-bubble mentor-bubble typing-bubble" role="status" aria-live="polite"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-label">Ada is thinking…</span></span></div>`);
+  container.scrollTop = container.scrollHeight;
 
-  const res = await apiCall('/api/ai_mentor/chat', 'POST', { message: msg });
-  if (res && res.reply) {
-    container.innerHTML += `
-      <div class="chat-msg msg-mentor" style="margin: 0.5rem 0;">
-        <strong>Ada • AI Mentor:</strong>
-        <p>${res.reply}</p>
-        ${res.action_suggestion ? `<small class="text-accent" style="cursor: pointer;">👉 Suggested: ${res.action_suggestion}</small>` : ''}
-      </div>
-    `;
+  STATE.chatHistory.push({ role: 'user', content: msg });
+  try {
+    const res = await apiCall('/api/ai/chat', 'POST', { message: msg, history: STATE.chatHistory.slice(-12) });
+    document.getElementById(typingId)?.remove();
+    if (res && res.reply) {
+      STATE.chatHistory.push({ role: 'assistant', content: res.reply });
+      container.insertAdjacentHTML('beforeend', `<div class="chat-msg msg-mentor chat-bubble-row"><span class="chat-bubble mentor-bubble"><strong>Ada · AI Mentor</strong><span class="chat-reply">${escapeHtml(res.reply)}</span><small class="text-muted">${escapeHtml(res.model?.provider || 'local model')} · ${escapeHtml(res.model?.model || '')}</small></span></div>`);
+    } else if (res?.error) {
+      container.insertAdjacentHTML('beforeend', `<div class="chat-msg msg-error chat-bubble-row"><span class="chat-bubble error-bubble">${escapeHtml(res.error)}</span></div>`);
+    }
+  } finally {
+    input.disabled = false;
+    if (sendButton) sendButton.disabled = false;
+    input.focus();
     container.scrollTop = container.scrollHeight;
   }
 }
@@ -839,20 +1138,13 @@ async function submitWeeklyCheckin() {
   }
 }
 
-function fillSampleExplanation() {
-  const concept = document.getElementById('feynman-concept-select').value;
-  if (concept.includes('Event Loop')) {
-    document.getElementById('feynman-text-input').value = 
-      "The JavaScript event loop continuously coordinates the call stack and queues. Synchronous execution runs on the single main thread. Asynchronous callbacks like Promises queue into microtasks, while setTimeout goes into macrotasks. The event loop prioritizes draining all microtasks before picking the next macrotask.";
-  } else {
-    document.getElementById('feynman-text-input').value = 
-      "A closure occurs when an inner function retains lexical access to variables declared in its enclosing parent scope, even after the parent function has finished executing.";
-  }
-}
-
 async function submitExplainBack() {
-  const concept = document.getElementById('feynman-concept-select').value;
-  const explanation = document.getElementById('feynman-text-input').value;
+  const concept = document.getElementById('explain-back-concept').value.trim();
+  const explanation = document.getElementById('explain-back-text').value;
+  if (!concept) {
+    alert('Choose a concept, skill, or topic first.');
+    return;
+  }
   if (!explanation.trim()) {
     alert('Please write an explanation first.');
     return;
@@ -861,15 +1153,15 @@ async function submitExplainBack() {
   const res = await apiCall('/api/ai_mentor/explain_back', 'POST', { concept, explanation });
   if (!res || res.error) return;
 
-  const box = document.getElementById('feynman-feedback-box');
+  const box = document.getElementById('explain-back-feedback');
   box.classList.remove('hidden');
   box.innerHTML = `
     <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 1rem; margin-top: 1rem;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-        <strong>Feynman Score: ${res.composite_score}/100</strong>
+        <strong>Explain-back score: ${res.composite_score}/100</strong>
         <span class="badge-xp text-success">+${res.xp_earned} XP</span>
       </div>
-      <p style="font-size: 0.85rem; margin-bottom: 0.5rem;">"${res.feynman_verdict}"</p>
+      <p style="font-size: 0.85rem; margin-bottom: 0.5rem;">"${escapeHtml(res.explain_back_verdict || '')}"</p>
       <div style="display: flex; gap: 1rem; font-size: 0.8rem; color: var(--text-muted);">
         <span>Accuracy: ${res.accuracy_score}%</span>
         <span>Clarity: ${res.clarity_score}%</span>

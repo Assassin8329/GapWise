@@ -29,3 +29,9 @@ venv/
 *.db
 *.sqlite3
 
+# Xcode
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+

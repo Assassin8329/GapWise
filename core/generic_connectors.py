@@ -125,9 +125,12 @@ class ConnectorRegistry:
         session = self._pkce_sessions.pop(state, None)
         code_verifier = session["code_verifier"] if session else None
 
-        # If user provides or exchanges real token
-        real_access_token = access_token or f"user_tk_{secrets.token_hex(20)}"
-        real_refresh_token = refresh_token or f"user_rf_{secrets.token_hex(24)}"
+        # Never synthesize credentials. A connector callback must provide the
+        # real provider token produced by a completed OAuth exchange.
+        if not access_token:
+            raise PermissionError("OAuth callback did not include a provider access token")
+        real_access_token = access_token
+        real_refresh_token = refresh_token
         username = account_username or f"user@{provider_id}"
 
         # Encrypt into Token Vault
@@ -223,10 +226,10 @@ class ConnectorRegistry:
             return {
                 "provider_id": provider_id,
                 "endpoint": endpoint,
-                "status": "connected",
+                "status": "error",
                 "authenticated_as": token_info["account_username"],
                 "data": {},
-                "note": f"Live provider endpoint query attempted ({str(e)})"
+                "error": f"Live provider endpoint query failed: {e}"
             }
 
     def import_manual_data(self, user_id: str, provider_id: str, filename: str, content: str) -> Dict[str, Any]:

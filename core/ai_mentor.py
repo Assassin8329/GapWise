@@ -5,6 +5,8 @@ AI Mentor, Weekly Check-in Diagnostic, Explain-Back Evaluator & Peer Pairing Age
 from typing import Dict, List, Any
 import time
 
+from core.models import CAREER_ROLES
+
 class AIMentorEngine:
 
     @staticmethod
@@ -17,43 +19,70 @@ class AIMentorEngine:
         Conversational AI Mentor that guides the learner based on their current gaps,
         learning twin velocity, and target career.
         """
-        target_role = user_profile.get("target_role", "Full Stack Developer")
+        target_role = user_profile.get("target_role") or user_profile.get("target_outcome") or user_profile.get("goal_domain") or ""
         user_name = user_profile.get("name", "Learner")
         msg_lower = user_message.lower()
+        skills = user_profile.get("skills", {}) or {}
+        role = CAREER_ROLES.get(target_role, {})
+        requirements = role.get("required_skills", {})
 
-        # Context-aware intelligent mentor responses
+        def score_for(skill: str) -> float:
+            data = skills.get(skill, {}) or {}
+            return max(float(data.get("assessed_rating", 0) or 0), float(data.get("self_rating", 0) or 0) * 20)
+
+        gaps = sorted(
+            ((skill, score_for(skill), threshold) for skill, threshold in requirements.items()
+             if score_for(skill) < threshold),
+            key=lambda row: (row[1] / max(row[2], 1), row[1])
+        )
+        strengths = sorted(
+            ((skill, score_for(skill)) for skill in skills if score_for(skill) >= 70),
+            key=lambda row: row[1], reverse=True
+        )
+        top_gap = gaps[0][0] if gaps else None
+        top_strength = strengths[0][0] if strengths else None
+        xp = int(user_profile.get("xp", 0) or 0)
+        streak = int(user_profile.get("streak_days", 0) or 0)
+
         if "roadmap" in msg_lower or "next" in msg_lower:
-            reply = (
-                f"Hello {user_name}! Looking at your current trajectory for **{target_role}**, "
-                "your highest-priority milestone is mastering the **JavaScript Event Loop & Async execution**. "
-                "You're already proficient in Python and SQL (both verified >75%), so once we bridge your React & Node.js "
-                "gaps, your job-readiness match will jump from 46% to over 82%. Shall we tackle the 15-minute interactive sandbox module?"
-            )
-            action_suggestion = "Open Roadmap: Modern JavaScript Deep Dive"
+            if top_gap:
+                reply = (
+                    f"Hi {user_name}. For {target_role}, the clearest next step is {top_gap}: "
+                    f"your current profile signal is {round(score_for(top_gap))}% against a {requirements[top_gap]}% target. "
+                    "Open the roadmap to see the prerequisite chain, then use an adaptive test to turn that gap into evidence."
+                )
+                action_suggestion = "Open Roadmap"
+            else:
+                reply = (
+                    f"Your profile currently covers the tracked {target_role} requirements. "
+                    "Use the roadmap to complete the next module or run a mock interview to validate job-ready depth."
+                )
+                action_suggestion = "Open Mock Interview"
 
         elif "struggl" in msg_lower or "stuck" in msg_lower or "hard" in msg_lower:
+            focus = top_gap or "the concept you are working on"
             reply = (
-                "It's completely normal to hit plateaus when switching between imperative and asynchronous event-driven models. "
-                "Our Struggle Detector noticed you hesitated on React hook closures. Remember: closures preserve state at render-time. "
-                "I recommend our **Micro-Quiz in Code** exercise, or trying **Explain-Back Mode** where you teach the concept back to me."
+                f"A productive way through {focus} is to make the gap observable: take the smallest adaptive test, "
+                "read the explanation, then teach the idea back in one short paragraph. "
+                "That gives Ada enough evidence to recommend a better next step without guessing."
             )
-            action_suggestion = "Start Explain-Back Mode: React Closures"
+            action_suggestion = "Start Explain-Back Mode"
 
         elif "interview" in msg_lower or "mock" in msg_lower:
             reply = (
-                f"Preparing for {target_role} interviews requires both crisp communication and deep architectural justification. "
-                "I have an adaptive mock interview session queued up for you on **SPA Performance & Idempotent API Design**. "
-                "You can practice speaking or typing your response, and I'll grade you on our 4-dimension engineering rubric."
+                f"For a {target_role} interview, practice explaining trade-offs with one concrete example and one failure mode. "
+                "The mock interview tab will score technical depth, clarity, problem solving, and communication from your response."
             )
             action_suggestion = "Start Mock Interview"
 
         else:
+            progress = f"You have {xp} XP and a {streak}-day streak" if xp or streak else "Your profile is ready to learn from its first signal"
+            focus = f"Your strongest tracked signal is {top_strength}" if top_strength else "Add a skill or run an assessment so I can personalize the plan"
             reply = (
-                f"Great to connect, {user_name}. I'm continuously monitoring your Learning Twin metrics: your velocity is currently "
-                f"at 120 XP/day with a 12-day streak! What would you like to focus on today? We can analyze your skill gaps, "
-                "simulate a career pivot, run an adaptive test, or adjust your weekly study schedule around upcoming deadlines."
+                f"Welcome, {user_name}. {progress}. {focus}. "
+                "Ask me about your roadmap, a stuck concept, an interview, or a career pivot and I’ll ground the next step in your profile."
             )
-            action_suggestion = "View Weekly Schedule"
+            action_suggestion = "View Your Roadmap"
 
         return {
             "mentor_name": "Ada - Senior AI Career Mentor",
@@ -105,46 +134,31 @@ class AIMentorEngine:
     @staticmethod
     def evaluate_explain_back(concept: str, explanation: str) -> Dict[str, Any]:
         """
-        Explain-Back Mode (Feynman Technique):
-        Learner explains a technical concept in their own words;
-        Agent grades accuracy, depth, clarity, and detects misconceptions.
+        Explain-Back Mode:
+        Learner explains a concept, skill, or topic in their own words;
+        Agent grades accuracy, depth, and clarity based on word count and
+        generic structural signals.  Domain-specific evaluation is handled
+        by the model-backed /api/ai_mentor/explain_back route; this path
+        is the lightweight local fallback.
         """
         words = len(explanation.strip().split())
         text_lower = explanation.lower()
 
-        # Grade concepts
-        concept_keywords = {
-            "event loop": ["call stack", "queue", "microtask", "macrotask", "non-blocking", "single threaded", "event loop", "asynchronous"],
-            "closures": ["lexical", "scope", "function", "memory", "outer", "reference", "variables", "encapsulation"],
-            "database indexing": ["b-tree", "lookup", "binary search", "disk io", "range scan", "seek", "speed", "leaf node"],
-            "gradient descent": ["derivative", "loss", "weights", "learning rate", "convex", "slope", "optimization", "minimum"]
-        }
+        # Generic structural keywords (domain-agnostic)
+        structural_kw = ["concept", "structure", "process", "result", "example",
+                         "because", "therefore", "step", "first", "then"]
+        matched_kw = [k for k in structural_kw if k in text_lower]
 
-        matched_kw = []
-        for c_key, kws in concept_keywords.items():
-            if c_key in concept.lower():
-                matched_kw = [k for k in kws if k in text_lower]
-                break
-
-        if not matched_kw:
-            matched_kw = [w for w in ["concept", "structure", "process", "result"] if w in text_lower]
-
-        accuracy_score = min(98, max(40, len(matched_kw) * 15 + (15 if words >= 40 else 0)))
+        accuracy_score = min(98, max(40, len(matched_kw) * 12 + (15 if words >= 40 else 0)))
         clarity_score = 92 if 35 <= words <= 180 else (60 if words < 20 else 75)
-        depth_score = min(95, max(45, len(matched_kw) * 14))
+        depth_score = min(95, max(45, len(matched_kw) * 11))
 
         composite = round((accuracy_score * 0.45) + (clarity_score * 0.3) + (depth_score * 0.25))
 
-        misconceptions = []
-        if "multi-threaded" in text_lower and "event loop" in concept.lower():
-            misconceptions.append("JavaScript engine execution context is single-threaded (libuv provides the worker pool).")
-        if "copies variables" in text_lower and "closure" in concept.lower():
-            misconceptions.append("Closures hold a reference to outer variables, rather than copying values.")
-
-        feynman_verdict = (
-            "Outstanding grasp of first principles! You explained the mechanics clearly without relying on buzzwords."
+        explain_back_verdict = (
+            "Strong explanation — you conveyed the key mechanics without relying on jargon."
             if composite >= 80 else
-            "Good foundational understanding. Try breaking down the step-by-step lifecycle with an everyday analogy."
+            "Solid start. Try breaking the idea into numbered steps and adding a concrete example or analogy."
         )
 
         return {
@@ -154,8 +168,8 @@ class AIMentorEngine:
             "clarity_score": clarity_score,
             "depth_score": depth_score,
             "word_count": words,
-            "feynman_verdict": feynman_verdict,
-            "misconceptions_flagged": misconceptions,
+            "explain_back_verdict": explain_back_verdict,
+            "misconceptions_flagged": [],
             "xp_earned": int(composite * 1.2)
         }
 
@@ -200,9 +214,9 @@ class AIMentorEngine:
                     "peer_name": other["name"],
                     "peer_type": other["user_type"],
                     "compatibility_score": compatibility,
-                    "they_teach_you": list(can_teach_me) or ["General Full Stack"],
-                    "you_teach_them": list(i_can_teach) or ["Python Data Modeling"],
-                    "study_mode": "Async Code Review & Pair Programming"
+                    "they_teach_you": list(can_teach_me) if can_teach_me else [],
+                    "you_teach_them": list(i_can_teach) if i_can_teach else [],
+                    "study_mode": "Collaborative Study & Peer Review"
                 })
 
         peer_matches.sort(key=lambda x: x["compatibility_score"], reverse=True)

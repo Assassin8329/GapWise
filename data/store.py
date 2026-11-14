@@ -10,6 +10,9 @@ import os
 import json
 import time
 import sqlite3
+import hashlib
+import hmac
+import secrets
 from typing import Dict, Any, List, Optional
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "gapwise.db")
@@ -41,7 +44,45 @@ def init_db():
         weekly_hours_budget INTEGER DEFAULT 10,
         exam_crunch_json TEXT DEFAULT '[]',
         created_at REAL,
-        last_active REAL
+        last_active REAL,
+        password_hash TEXT DEFAULT '',
+        password_salt TEXT DEFAULT '',
+        auth_provider TEXT DEFAULT 'email',
+        ability_theta REAL DEFAULT 0,
+        goal_domain TEXT DEFAULT '',
+        target_outcome TEXT DEFAULT '',
+        experience_level TEXT DEFAULT '',
+        preferred_learning_style TEXT DEFAULT ''
+    )
+    """)
+
+    # Authentication columns are additive so existing learner data remains intact.
+    cursor.execute("PRAGMA table_info(users)")
+    user_columns = {row[1] for row in cursor.fetchall()}
+    if "password_hash" not in user_columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN password_hash TEXT DEFAULT ''")
+    if "password_salt" not in user_columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN password_salt TEXT DEFAULT ''")
+    if "auth_provider" not in user_columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN auth_provider TEXT DEFAULT 'email'")
+    if "ability_theta" not in user_columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN ability_theta REAL DEFAULT 0")
+    if "goal_domain" not in user_columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN goal_domain TEXT DEFAULT ''")
+    if "target_outcome" not in user_columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN target_outcome TEXT DEFAULT ''")
+    if "experience_level" not in user_columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN experience_level TEXT DEFAULT ''")
+    if "preferred_learning_style" not in user_columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN preferred_learning_style TEXT DEFAULT ''")
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS sessions (
+        token_hash TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        created_at REAL NOT NULL,
+        last_seen REAL NOT NULL,
+        expires_at REAL NOT NULL
     )
     """)
 
@@ -93,6 +134,67 @@ def init_db():
 init_db()
 
 class DataStore:
+
+    @staticmethod
+    def hash_password(password: str, salt: Optional[bytes] = None) -> Dict[str, str]:
+        if len(password) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        raw_salt = salt or secrets.token_bytes(16)
+        digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), raw_salt, 210_000)
+        return {"salt": raw_salt.hex(), "hash": digest.hex()}
+
+    @staticmethod
+    def verify_password(password: str, password_hash: str, salt_hex: str) -> bool:
+        if not password_hash or not salt_hex:
+            return False
+        try:
+            expected = bytes.fromhex(password_hash)
+            salt = bytes.fromhex(salt_hex)
+        except ValueError:
+            return False
+        candidate = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 210_000)
+        return hmac.compare_digest(candidate, expected)
+
+    @staticmethod
+    def create_session(user_id: str, ttl_seconds: int = 60 * 60 * 24 * 30) -> str:
+        token = secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+        now = time.time()
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute(
+            "INSERT INTO sessions (token_hash, user_id, created_at, last_seen, expires_at) VALUES (?, ?, ?, ?, ?)",
+            (token_hash, user_id, now, now, now + ttl_seconds),
+        )
+        conn.commit()
+        conn.close()
+        return token
+
+    @staticmethod
+    def get_user_by_session(token: str) -> Optional[Dict[str, Any]]:
+        if not token:
+            return None
+        token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+        now = time.time()
+        conn = sqlite3.connect(DB_PATH)
+        row = conn.execute(
+            "SELECT user_id FROM sessions WHERE token_hash = ? AND expires_at > ?",
+            (token_hash, now),
+        ).fetchone()
+        if row:
+            conn.execute("UPDATE sessions SET last_seen = ? WHERE token_hash = ?", (now, token_hash))
+            conn.commit()
+        conn.close()
+        return DataStore.get_user(row[0]) if row else None
+
+    @staticmethod
+    def revoke_session(token: str) -> None:
+        if not token:
+            return
+        token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("DELETE FROM sessions WHERE token_hash = ?", (token_hash,))
+        conn.commit()
+        conn.close()
 
     @staticmethod
     def get_user(user_id: str) -> Optional[Dict[str, Any]]:
@@ -148,6 +250,14 @@ class DataStore:
         opt_in = 1 if user_data.get("opt_in_leaderboard", True) else 0
         budget = int(user_data.get("weekly_hours_budget", 10))
         crunch = json.dumps(user_data.get("exam_crunch_blocks", []))
+        password_hash = user_data.get("password_hash", "")
+        password_salt = user_data.get("password_salt", "")
+        auth_provider = user_data.get("auth_provider", "email")
+        ability_theta = float(user_data.get("ability_theta", 0.0))
+        goal_domain = user_data.get("goal_domain", "")
+        target_outcome = user_data.get("target_outcome", "")
+        experience_level = user_data.get("experience_level", "")
+        preferred_learning_style = user_data.get("preferred_learning_style", "")
         now = time.time()
 
         cursor.execute("""
@@ -156,8 +266,9 @@ class DataStore:
             skills_json, certifications_json, projects_json,
             learning_rate, xp, level, streak_days, badges_json,
             opt_in_leaderboard, weekly_hours_budget, exam_crunch_json,
-            created_at, last_active
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            created_at, last_active, password_hash, password_salt, auth_provider, ability_theta,
+            goal_domain, target_outcome, experience_level, preferred_learning_style
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
             name = excluded.name,
             email = excluded.email,
@@ -176,13 +287,22 @@ class DataStore:
             opt_in_leaderboard = excluded.opt_in_leaderboard,
             weekly_hours_budget = excluded.weekly_hours_budget,
             exam_crunch_json = excluded.exam_crunch_json,
+            password_hash = CASE WHEN excluded.password_hash != '' THEN excluded.password_hash ELSE users.password_hash END,
+            password_salt = CASE WHEN excluded.password_salt != '' THEN excluded.password_salt ELSE users.password_salt END,
+            auth_provider = excluded.auth_provider,
+            ability_theta = excluded.ability_theta,
+            goal_domain = excluded.goal_domain,
+            target_outcome = excluded.target_outcome,
+            experience_level = excluded.experience_level,
+            preferred_learning_style = excluded.preferred_learning_style,
             last_active = excluded.last_active
         """, (
             uid, name, email, avatar, user_type, bio, target_role,
             skills, certs, projs,
             learning_rate, xp, level, streak, badges,
             opt_in, budget, crunch,
-            now, now
+            now, now, password_hash, password_salt, auth_provider, ability_theta,
+            goal_domain, target_outcome, experience_level, preferred_learning_style
         ))
         conn.commit()
         conn.close()
@@ -284,7 +404,15 @@ class DataStore:
             "weekly_hours_budget": row[16],
             "exam_crunch_blocks": json.loads(row[17]) if row[17] else [],
             "created_at": row[18],
-            "last_active": row[19]
+            "last_active": row[19],
+            "password_hash": row[20] if len(row) > 20 else "",
+            "password_salt": row[21] if len(row) > 21 else "",
+            "auth_provider": row[22] if len(row) > 22 else "email",
+            "ability_theta": row[23] if len(row) > 23 else 0.0,
+            "goal_domain": row[24] if len(row) > 24 else "",
+            "target_outcome": row[25] if len(row) > 25 else "",
+            "experience_level": row[26] if len(row) > 26 else "",
+            "preferred_learning_style": row[27] if len(row) > 27 else ""
         }
 
 store = DataStore()

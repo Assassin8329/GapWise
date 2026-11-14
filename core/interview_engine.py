@@ -13,10 +13,7 @@ class MockInterviewEngine:
         """
         Returns role-specific technical/behavioral interview questions.
         """
-        questions = MOCK_INTERVIEW_BANK.get(target_role)
-        if not questions:
-            # Fallback to full stack questions
-            questions = MOCK_INTERVIEW_BANK["Full Stack Developer"]
+        questions = MOCK_INTERVIEW_BANK.get(target_role, [])
 
         return {
             "target_role": target_role,

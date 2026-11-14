@@ -28,35 +28,68 @@ class AnalyticsEngine:
         streak = user_profile.get("streak_days", 0)
         learning_rate = user_profile.get("learning_rate", 1.0)
         weekly_hours = user_profile.get("weekly_hours_budget", 10)
+        goal_domain = str(user_profile.get("goal_domain") or "").strip()
+        target_outcome = str(user_profile.get("target_outcome") or "").strip()
+        experience_level = str(user_profile.get("experience_level") or "").strip().lower()
+        learning_style = str(user_profile.get("preferred_learning_style") or "").strip().lower()
+        has_goal = bool(goal_domain or target_outcome)
 
         # Real velocity in XP/day
         velocity_xp_per_day = round(max(10.0, 45.0 * learning_rate + (streak * 3.0)), 1) if xp > 0 else 0.0
 
-        if user_type == "student":
-            peak_focus_hours = "2:00 PM - 6:00 PM (Afternoon Deep Work)"
-            preferred_format = "Interactive Code Labs & Micro-Quizzes"
-            attention_span_minutes = 45
-        elif user_type == "professional":
-            peak_focus_hours = "7:30 PM - 10:00 PM (Evening Wind-Down)"
-            preferred_format = "Concise Architectural Reviews & Code Sandboxes"
-            attention_span_minutes = 30
+        if not has_goal:
+            peak_focus_hours = "Not selected"
+            preferred_format = "Not selected"
+            attention_span_minutes = 0
         else:
-            peak_focus_hours = "9:00 AM - 1:00 PM (Morning Sprint)"
-            preferred_format = "Capstone Projects & Mock Interviews"
-            attention_span_minutes = 60
+            if any(word in learning_style for word in ("visual", "diagram", "watch")):
+                modality = "Visual walkthroughs & diagrams"
+            elif any(word in learning_style for word in ("hands", "project", "practice", "doing")):
+                modality = "Guided practice & real-world projects"
+            elif any(word in learning_style for word in ("discussion", "social", "conversation", "coach")):
+                modality = "Discussion, coaching & peer feedback"
+            elif any(word in learning_style for word in ("audio", "listen", "podcast")):
+                modality = "Audio lessons & verbal recall"
+            elif any(word in learning_style for word in ("read", "writing", "text")):
+                modality = "Focused reading & written synthesis"
+            else:
+                modality = "Mixed practice & explain-back"
+
+            if any(word in experience_level for word in ("beginner", "new", "starting")):
+                attention_span_minutes = 25
+            elif any(word in experience_level for word in ("advanced", "expert", "experienced")):
+                attention_span_minutes = 60
+            else:
+                attention_span_minutes = 45
+
+            if user_type == "professional":
+                peak_focus_hours = "7:30 PM - 10:00 PM (Evening focus)"
+            elif user_type == "student":
+                peak_focus_hours = "2:00 PM - 6:00 PM (Afternoon focus)"
+            else:
+                peak_focus_hours = "9:00 AM - 1:00 PM (Morning focus)"
+            preferred_format = f"{modality} ({attention_span_minutes}m sessions)"
 
         retention_stability_factor = round(min(0.98, max(0.40, 0.65 + (streak * 0.02))), 2)
 
         # Estimated job-ready completion date in weeks based on remaining gaps
-        target_role = user_profile.get("target_role", "Full Stack Developer")
-        predicted_weeks_remaining = max(1, round(14 / max(0.4, (weekly_hours / 10) * learning_rate))) if target_role else 0
+        has_activity = len(user_profile.get("skills", {})) > 0 or xp > 0
+        predicted_weeks_remaining = (
+            max(1, round(14 / max(0.4, (weekly_hours / 10) * learning_rate)))
+            if has_goal and has_activity else 0
+        )
 
-        has_data = len(user_profile.get("skills", {})) > 0 or xp > 0
+        has_data = has_activity
 
         return {
             "twin_id": f"twin_{user_profile.get('id', 'default')}",
             "has_data": has_data,
-            "sync_status": "ACTIVE_SYNCHRONIZED" if has_data else "WAITING_FOR_DATA",
+            "sync_status": "ACTIVE_SYNCHRONIZED" if has_data else ("WAITING_FOR_GOAL" if not has_goal else "WAITING_FOR_DATA"),
+            "has_goal": has_goal,
+            "goal_domain": goal_domain,
+            "target_outcome": target_outcome,
+            "experience_level": user_profile.get("experience_level", ""),
+            "preferred_learning_style": user_profile.get("preferred_learning_style", ""),
             "study_velocity_xp_per_day": velocity_xp_per_day,
             "peak_focus_hours": peak_focus_hours,
             "preferred_format": preferred_format,
@@ -133,7 +166,7 @@ class AnalyticsEngine:
         return {
             "passport_id": f"GAP-{user_id.upper()[:8]}",
             "holder_name": name,
-            "target_role": user_profile.get("target_role", "Engineering Learner"),
+            "target_role": user_profile.get("target_role") or user_profile.get("target_outcome") or "Not selected",
             "level_title": user_profile.get("level_title", "Explorer"),
             "verification_status": "CRYPTOGRAPHICALLY_VERIFIED" if len(verified_skills) > 0 else "PENDING_VERIFICATION",
             "signature_hash": signature_hash,

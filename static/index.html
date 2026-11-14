@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="system">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="dark-theme">
   <!-- Top Navigation Header -->
@@ -54,9 +55,16 @@
       <div id="auth-actions-header">
         <button class="btn btn-google-signin btn-sm" onclick="openGoogleAuthModal()">
           <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-          <span id="auth-btn-label">Sign in with Google</span>
+          <span id="auth-btn-label">Sign in / setup</span>
         </button>
       </div>
+      <button id="theme-toggle" class="btn btn-ghost btn-sm theme-toggle" onclick="cycleTheme()" aria-label="Theme: System. Switch theme" title="Switch between system, light, and dark themes">
+        <span id="theme-toggle-icon" aria-hidden="true">◐</span>
+        <span id="theme-toggle-label">System</span>
+      </button>
+      <button id="model-status-pill" class="btn btn-ghost btn-sm model-status-pill" onclick="openStartupModal()" title="Configure AI runtime">
+        <span id="model-status-label">AI setup</span>
+      </button>
     </div>
   </header>
 
@@ -76,7 +84,7 @@
     </button>
     <button class="nav-tab" data-tab="tests" onclick="setTab('tests')">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-      Adaptive Tests & Sandbox
+      Adaptive Checks & Practice
     </button>
     <button class="nav-tab" data-tab="interview" onclick="setTab('interview')">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
@@ -105,13 +113,13 @@
       <div class="career-banner card">
         <div class="career-banner-left">
           <div class="badge-role" id="dash-user-type">STUDENT PROFILE</div>
-          <h1 class="target-career-heading">Target Goal: <span id="dash-target-role" class="text-gradient">Full Stack Developer</span></h1>
-          <p class="role-desc" id="dash-role-desc">Architects modern web applications across frontend UI, server-side APIs, database modeling, and DevOps deployment.</p>
+          <h1 class="target-career-heading">Growth Direction: <span id="dash-target-role" class="text-gradient">Not selected</span></h1>
+          <p class="role-desc" id="dash-role-desc">Declare an area and outcome during setup to make GapWise personal to you.</p>
           
           <div class="career-meta-row">
-            <div class="meta-item"><span class="meta-label">Market Salary:</span> <strong id="dash-salary">$95k - $145k</strong></div>
-            <div class="meta-item"><span class="meta-label">Demand Growth:</span> <strong class="text-success" id="dash-growth">+22% YoY</strong></div>
-            <div class="meta-item"><span class="meta-label">Est. Time to Job-Ready:</span> <strong id="dash-weeks">0 Weeks</strong></div>
+          <div class="meta-item"><span class="meta-label">Market Salary:</span> <strong id="dash-salary">Not selected</strong></div>
+            <div class="meta-item"><span class="meta-label">Demand Growth:</span> <strong class="text-success" id="dash-growth">Not selected</strong></div>
+            <div class="meta-item"><span class="meta-label">Est. Time to Job-Ready:</span> <strong id="dash-weeks">Not selected</strong></div>
           </div>
         </div>
 
@@ -193,7 +201,7 @@
 
           <div class="twin-habit-bar">
             <div class="th-label">Optimal Learning Modality:</div>
-            <div class="th-value" id="twin-modality">Interactive Code Labs & Micro-Quizzes (45m Sessions)</div>
+            <div class="th-value" id="twin-modality">Not selected</div>
           </div>
         </div>
       </div>
@@ -305,6 +313,7 @@
           <div class="pivot-controls">
             <label class="pivot-label">Simulate Target Role:</label>
             <select id="pivot-role-select" class="form-select" onchange="runCareerPivot(this.value)">
+              <option value="" selected>Select a supported direction</option>
               <option value="Full Stack Developer">Full Stack Developer</option>
               <option value="AI / ML Engineer">AI / ML Engineer</option>
               <option value="Cloud & DevOps Engineer">Cloud & DevOps Engineer</option>
@@ -319,7 +328,7 @@
       </div>
     </section>
 
-    <!-- TAB 4: ADAPTIVE TESTS & LIVE CODE SANDBOX -->
+    <!-- TAB 4: ADAPTIVE TESTS & DOMAIN-AGNOSTIC PRACTICE LAB -->
     <section id="tab-tests" class="tab-pane">
       <div class="dashboard-grid-2">
         <div class="card">
@@ -351,31 +360,49 @@
         <div class="card sandbox-card">
           <div class="card-header">
             <div>
-              <span class="chip chip-blue">LIVE ENVIRONMENT</span>
-              <h3 class="card-title">Live Code Sandbox & Micro-Quizzes</h3>
-              <p class="card-sub">Quizzes appear inside code comments. Execute live test assertions.</p>
-            </div>
-            <div class="sandbox-lang-picker">
-              <button class="btn-lang active" onclick="setSandboxLang('python')">Python 3</button>
-              <button class="btn-lang" onclick="setSandboxLang('javascript')">JavaScript (ES6)</button>
+              <span class="chip chip-blue">LIVE PRACTICE LAB</span>
+              <h3 class="card-title">Adaptive Practice Workspace</h3>
+              <p class="card-sub">Choose any domain, language, or medium. The AI creates and evaluates this challenge for you.</p>
             </div>
           </div>
 
-          <div class="sandbox-editor-wrapper">
-            <textarea id="sandbox-code-editor" class="code-textarea" spellcheck="false"></textarea>
+          <div class="practice-config-grid">
+            <div>
+              <label class="form-label" for="practice-domain">Domain or skill</label>
+              <input id="practice-domain" class="form-input" placeholder="e.g. public speaking, biology, product design, Python">
+            </div>
+            <div>
+              <label class="form-label" for="practice-language">Language / medium</label>
+              <input id="practice-language" class="form-input" placeholder="e.g. English, Spanish, Swift, watercolor">
+            </div>
+            <div>
+              <label class="form-label" for="practice-format">Practice format</label>
+              <select id="practice-format" class="form-select">
+                <option>Explain a concept</option>
+                <option>Solve a scenario</option>
+                <option>Create an artifact</option>
+                <option>Produce or revise an artifact</option>
+                <option>Reflect and plan</option>
+              </select>
+            </div>
           </div>
 
           <div class="sandbox-toolbar">
-            <button class="btn btn-success btn-sm" onclick="runSandboxCode()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Execute Code & Run Tests
-            </button>
-            <button class="btn btn-ghost btn-sm" onclick="loadMicroQuizCode()">Insert Micro-Quiz in Code</button>
+            <button class="btn btn-primary btn-sm" onclick="generatePracticeChallenge()">Generate adaptive challenge</button>
           </div>
 
-          <div class="sandbox-terminal" id="sandbox-terminal">
-            <div class="term-header">CONSOLE OUTPUT & TEST ASSERTIONS</div>
-            <pre class="term-content" id="sandbox-terminal-out">Ready. Click 'Execute Code' to run unit tests...</pre>
+          <div class="practice-challenge-panel" id="practice-challenge-panel">
+            <div class="term-header">CHALLENGE</div>
+            <p class="practice-empty" id="practice-empty">Choose your domain, language or medium, and generate a real model-backed challenge.</p>
+            <div id="practice-challenge-content" class="hidden">
+              <h4 id="practice-challenge-title"></h4>
+              <p id="practice-challenge-prompt"></p>
+              <ul id="practice-challenge-instructions"></ul>
+              <label class="form-label" for="practice-response">Your response or artifact notes</label>
+              <textarea id="practice-response" class="code-textarea" rows="9" placeholder="Work through the challenge here and describe the evidence you produced."></textarea>
+              <button class="btn btn-success btn-sm" onclick="evaluatePracticeChallenge()">Evaluate my response</button>
+              <div id="practice-feedback" class="feedback-box hidden"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -386,9 +413,9 @@
       <div class="card">
         <div class="card-header">
           <div>
-            <span class="chip chip-purple">ROLE-SPECIFIC SIMULATION</span>
-            <h2 class="card-title">AI Mock Interview Agent for <span id="interview-role-label">Full Stack Developer</span></h2>
-            <p class="card-sub">Simulates realistic technical interviews with scored rubrics across 4 dimensions.</p>
+            <span class="chip chip-purple">OUTCOME-BASED SIMULATION</span>
+            <h2 class="card-title">AI Interview & Speaking Studio for <span id="interview-role-label">your chosen outcome</span></h2>
+            <p class="card-sub">Practice any role, exam, presentation, or conversation with text or voice delivery feedback.</p>
           </div>
         </div>
 
@@ -403,12 +430,14 @@
 
           <div class="interview-answer-box">
             <label class="form-label">Your Response (Type or Speak using STAR method):</label>
-            <textarea id="interview-answer-input" class="interview-textarea" rows="6" placeholder="Provide a structured, architectural answer discussing system trade-offs and edge cases..."></textarea>
+            <textarea id="interview-answer-input" class="interview-textarea" rows="6" placeholder="Type or speak a structured answer for your chosen role, subject, or outcome…"></textarea>
             
             <div class="interview-controls">
+              <button class="btn btn-secondary" id="interview-voice-btn" onclick="toggleInterviewVoice()">🎙 Start voice input</button>
               <button class="btn btn-primary" onclick="submitInterviewAnswer()">Submit for Rubric Evaluation</button>
-              <button class="btn btn-secondary" onclick="fillSampleInterviewAnswer()">Fill Sample High-Scoring Answer</button>
             </div>
+            <p id="interview-voice-status" class="setup-status" role="status">Voice input is optional. Your browser will ask for microphone permission.</p>
+            <div id="interview-voice-metrics" class="voice-metrics hidden"></div>
           </div>
 
           <div id="interview-results-panel" class="interview-eval-panel hidden"></div>
@@ -439,34 +468,28 @@
           </form>
         </div>
 
-        <div class="card feynman-card">
+        <div class="card explain-back-card">
           <div class="card-header">
             <div>
-              <span class="chip chip-success">FEYNMAN TECHNIQUE</span>
+              <span class="chip chip-success">EXPLAIN-BACK</span>
               <h3 class="card-title">Explain-Back Mode</h3>
-              <p class="card-sub">Teach a concept in your own words. The agent grades your depth and flags misconceptions.</p>
+              <p class="card-sub">Choose a concept, skill, or topic and explain it in your own words. The agent evaluates clarity and depth.</p>
             </div>
           </div>
 
-          <div class="feynman-controls">
-            <label class="form-label">Select Concept to Explain:</label>
-            <select id="feynman-concept-select" class="form-select">
-              <option value="JavaScript Event Loop">JavaScript Event Loop & Microtasks</option>
-              <option value="Closures & Scope">Closures & Lexical Scope in JavaScript</option>
-              <option value="Database Indexing">Database Indexing & B-Trees in SQL</option>
-              <option value="Gradient Descent">Gradient Descent & Loss Optimization in ML</option>
-            </select>
+          <div class="explain-back-controls">
+            <label class="form-label" for="explain-back-concept">Concept, skill, or topic to explain:</label>
+            <input id="explain-back-concept" class="form-input" type="text" placeholder="e.g. a concept from your current goal">
 
             <label class="form-label" style="margin-top: 1rem;">Your Explanation:</label>
-            <textarea id="feynman-text-input" class="feynman-textarea" rows="5" placeholder="Explain this concept as if you were teaching a junior developer or classmate..."></textarea>
+            <textarea id="explain-back-text" class="explain-back-textarea" rows="5" placeholder="Explain it in your own words for someone who is learning it for the first time..."></textarea>
 
-            <div class="feynman-actions">
+            <div class="explain-back-actions">
               <button class="btn btn-primary" onclick="submitExplainBack()">Grade My Explanation</button>
-              <button class="btn btn-secondary" onclick="fillSampleExplanation()">Fill Sample Explanation</button>
             </div>
           </div>
 
-          <div id="feynman-feedback-box" class="feynman-feedback hidden"></div>
+          <div id="explain-back-feedback" class="explain-back-feedback hidden"></div>
         </div>
       </div>
     </section>
@@ -567,7 +590,7 @@
             <div>
               <span class="chip chip-purple">ACADEMIC / TEAM DASHBOARD</span>
               <h3 class="card-title">Cohort Heatmap</h3>
-              <p class="card-sub">Displays skill mastery across class or engineering team</p>
+              <p class="card-sub">Displays skill mastery across your class or cohort</p>
             </div>
           </div>
           <div id="cohort-heatmap-container" class="heatmap-table-wrapper"></div>
@@ -595,42 +618,91 @@
 
   </main>
 
-  <!-- MODAL: Google Sign-In & Profile Creation -->
-  <div id="modal-google-auth" class="modal-backdrop hidden">
-    <div class="modal-card">
+  <!-- STARTUP: Auth + model runtime setup -->
+  <div id="modal-startup" class="modal-backdrop">
+    <div class="modal-card startup-card">
       <div class="modal-header">
-        <h3>Sign In to GapWise</h3>
-        <button class="btn-close" onclick="closeGoogleAuthModal()">&times;</button>
+        <div>
+          <span class="chip chip-accent">FIRST-RUN SETUP</span>
+          <h2>Make GapWise yours</h2>
+          <p class="card-sub">Sign in to sync progress, then choose where your AI runs.</p>
+        </div>
       </div>
-      <div class="modal-body">
-        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-          GapWise uses <strong>Google OAuth 2.0 with PKCE (RFC 7636)</strong>. Real user tokens are vaulted on the server with AES-256-GCM.
-        </p>
 
-        <label class="form-label">Google Account Email:</label>
-        <input type="email" id="auth-email-input" class="form-input" placeholder="e.g. user@gmail.com" required>
+      <div class="startup-grid">
+        <section class="setup-panel">
+          <div class="setup-panel-heading">
+            <span class="setup-step">01</span>
+            <div><h3>Account</h3><p>Progress follows your account across browsers.</p></div>
+          </div>
+          <div class="auth-mode-tabs">
+            <button id="startup-login-tab" class="btn btn-secondary btn-sm active" onclick="setStartupAuthMode('login')">Sign in</button>
+            <button id="startup-register-tab" class="btn btn-ghost btn-sm" onclick="setStartupAuthMode('register')">Create account</button>
+          </div>
+          <label class="form-label" for="startup-email">Email</label>
+          <input id="startup-email" class="form-input" type="email" autocomplete="email" placeholder="you@example.com">
+          <label id="startup-name-label" class="form-label hidden" for="startup-name">Name</label>
+          <input id="startup-name" class="form-input hidden" type="text" autocomplete="name" placeholder="Your name">
+          <div id="startup-profile-fields" class="hidden">
+            <label class="form-label" for="startup-domain">What do you want to grow in?</label>
+            <input id="startup-domain" class="form-input" type="text" placeholder="e.g. public speaking, biology, product design, software">
+            <label class="form-label" for="startup-outcome">What outcome are you working toward?</label>
+            <input id="startup-outcome" class="form-input" type="text" placeholder="e.g. pass an exam, change careers, publish a portfolio">
+            <label class="form-label" for="startup-experience">Experience level</label>
+            <input id="startup-experience" class="form-input" type="text" placeholder="e.g. beginner, returning after a break, advanced">
+            <label class="form-label" for="startup-learning-style">Preferred learning style</label>
+            <input id="startup-learning-style" class="form-input" type="text" placeholder="e.g. visual, hands-on, discussion, short sessions">
+          </div>
+          <label class="form-label" for="startup-password">Password</label>
+          <input id="startup-password" class="form-input" type="password" autocomplete="current-password" placeholder="At least 8 characters">
+          <button id="startup-auth-submit" class="btn btn-primary full-width" onclick="submitStartupAuth()">Sign in</button>
+          <button class="btn btn-google-signin full-width" onclick="beginGoogleOAuth()">
+            <span aria-hidden="true">G</span> Continue with Google
+          </button>
+          <p id="startup-auth-status" class="setup-status" role="status"></p>
+        </section>
 
-        <label class="form-label" style="margin-top: 1rem;">Full Name:</label>
-        <input type="text" id="auth-name-input" class="form-input" placeholder="e.g. Sarah Jenkins">
-
-        <label class="form-label" style="margin-top: 1rem;">Learner Type:</label>
-        <select id="auth-type-input" class="form-select">
-          <option value="student">Student</option>
-          <option value="job_seeker">Job Seeker</option>
-          <option value="professional">Working Professional</option>
-        </select>
-
-        <label class="form-label" style="margin-top: 1rem;">Target Career Goal:</label>
-        <select id="auth-role-input" class="form-select">
-          <option value="Full Stack Developer">Full Stack Developer</option>
-          <option value="AI / ML Engineer">AI / ML Engineer</option>
-          <option value="Cloud & DevOps Engineer">Cloud & DevOps Engineer</option>
-          <option value="Data Scientist">Data Scientist</option>
-        </select>
+        <section class="setup-panel">
+          <div class="setup-panel-heading">
+            <span class="setup-step">02</span>
+            <div><h3>AI runtime</h3><p>No model means no invented answers.</p></div>
+          </div>
+          <div class="auth-mode-tabs">
+            <button id="startup-offline-tab" class="btn btn-secondary btn-sm active" onclick="setModelMode('offline')">Offline / Ollama</button>
+            <button id="startup-online-tab" class="btn btn-ghost btn-sm" onclick="setModelMode('online')">Online providers</button>
+          </div>
+          <div id="offline-model-fields">
+            <label class="form-label" for="ollama-model">Local model</label>
+            <input id="ollama-model" class="form-input" list="ollama-model-list" value="mimo-v2.6:9b" placeholder="mimo-v2.6:9b">
+            <datalist id="ollama-model-list"></datalist>
+            <label class="form-label" for="ollama-host">Ollama host</label>
+            <input id="ollama-host" class="form-input" value="http://127.0.0.1:11434" placeholder="http://127.0.0.1:11434">
+            <button class="btn btn-ghost btn-sm" onclick="loadOllamaModels()">Refresh installed models</button>
+          </div>
+          <div id="online-model-fields" class="hidden">
+            <label class="form-label" for="online-provider">Provider</label>
+            <select id="online-provider" class="form-select" onchange="applyProviderPreset()"></select>
+            <label class="form-label" for="online-api-key">API key <span class="text-muted">(memory only)</span></label>
+            <input id="online-api-key" class="form-input" type="password" autocomplete="off" placeholder="Never stored in SQLite">
+            <label class="form-label" for="online-base-url">Base URL</label>
+            <input id="online-base-url" class="form-input" placeholder="https://api.openai.com/v1">
+            <label class="form-label" for="online-model">Model name</label>
+            <input id="online-model" class="form-input" placeholder="Provider model name">
+          </div>
+          <details class="advanced-model-settings">
+            <summary>Advanced model settings</summary>
+            <label class="form-label" for="ai-context-window">Context capacity</label>
+            <input id="ai-context-window" class="form-input" type="number" min="2048" max="32768" step="1024" value="30720">
+            <p class="text-muted">GapWise starts at 30k and automatically steps down only if the selected model cannot load that capacity.</p>
+          </details>
+          <button class="btn btn-primary full-width" onclick="configureStartupAI()">Connect model</button>
+          <p id="startup-ai-status" class="setup-status" role="status"></p>
+        </section>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeGoogleAuthModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="submitGoogleAuth()">Complete Google Sign-In</button>
+
+      <div class="startup-footer">
+        <span id="startup-ready-status" class="text-muted">Complete account and AI setup to enter GapWise.</span>
+        <button id="startup-enter-btn" class="btn btn-primary" disabled onclick="finishStartupSetup()">Enter GapWise</button>
       </div>
     </div>
   </div>
@@ -690,13 +762,7 @@
         <input type="number" id="checkin-hours" class="form-input" value="10" min="1" max="50">
 
         <label class="form-label" style="margin-top: 1rem;">2. What concept felt most challenging or caused friction?</label>
-        <select id="checkin-struggle" class="form-select">
-          <option value="None">None - Everything was smooth</option>
-          <option value="JavaScript Closures">JavaScript Closures & Lexical Scope</option>
-          <option value="React Hooks">React useEffect & Stale State</option>
-          <option value="Async Event Loop">Async Event Loop & Promises</option>
-          <option value="SQL Query Planning">SQL B-Tree Indexing</option>
-        </select>
+        <input id="checkin-struggle" class="form-input" type="text" placeholder="Optional: name the concept, skill, or topic that felt difficult">
 
         <label class="form-label" style="margin-top: 1rem;">3. Has your career target or timeline shifted?</label>
         <div class="radio-row">

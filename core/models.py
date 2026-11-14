@@ -45,7 +45,7 @@ class UserProfile:
     email: str
     user_type: str              # "student" | "job_seeker" | "professional"
     bio: str
-    target_role: str            # e.g. "Full Stack Developer"
+    target_role: str            # e.g. "Full Stack Developer" or learner-selected direction
     skills: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     certifications: List[Dict[str, Any]] = field(default_factory=list)
     projects: List[Dict[str, Any]] = field(default_factory=list)
@@ -56,7 +56,7 @@ class UserProfile:
     # Gamification
     xp: int = 450
     level: int = 3
-    level_title: str = "Code Apprentice"
+    level_title: str = "Beginner"
     streak_days: int = 9
     badges: List[Dict[str, Any]] = field(default_factory=list)
     opt_in_leaderboard: bool = True

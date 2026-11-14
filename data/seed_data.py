@@ -229,7 +229,6 @@ MOCK_INTERVIEW_BANK = {
                 "communication": "Concise delivery without excessive filler words.",
                 "problem_solving": "Mentions edge cases like bundle code splitting and SSR/hydration trade-offs."
             },
-            "sample_good_answer": "When the user navigates to the URL, DNS resolves the IP, and the browser fetches the shell index.html and compiled JavaScript bundles. Client-side routing intercepts window.location via the HTML5 History API (pushState/popState) without reloading the page. During state updates, React builds a lightweight in-memory Virtual DOM tree, runs the heuristic O(n) diffing reconciliation algorithm against the previous fiber tree, and commits only the minimal dirty batch DOM mutations to the actual document, preserving layout performance."
         },
         {
             "id": "int_fs_2",
@@ -241,7 +240,6 @@ MOCK_INTERVIEW_BANK = {
                 "communication": "Structured, authoritative explanation.",
                 "problem_solving": "Addresses retry storms and race conditions."
             },
-            "sample_good_answer": "I would require clients to submit a unique Idempotency-Key header with every payment POST request. On incoming request, the server acquires a fast distributed lock in Redis for that key. If the key exists in Postgres with status 'COMPLETED', we immediately return the cached response. If 'PROCESSING', we return a 409 Conflict. If new, we insert a pending record inside an ACID database transaction, call the payment gateway with the same idempotency key, update the order status, cache the finalized receipt, and release the lock."
         }
     ],
     "AI / ML Engineer": [
@@ -255,7 +253,6 @@ MOCK_INTERVIEW_BANK = {
                 "communication": "Mathematical rigor combined with intuitive understanding.",
                 "problem_solving": "Addresses computational complexity O(n^2) and memory optimizations."
             },
-            "sample_good_answer": "In multi-head attention, input embeddings are projected into Query, Key, and Value vectors across multiple representation subspaces. The scaled dot-product attention computes compatibility between queries and keys. We scale by sqrt(d_k) because for large dimensional vectors, the dot product grows large in magnitude, pushing the softmax function into regions with near-zero gradients (saturation). Dividing by sqrt(d_k) stabilizes the variance back to 1, ensuring robust backpropagation."
         }
     ]
 }
