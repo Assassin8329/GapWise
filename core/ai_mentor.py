@@ -163,9 +163,16 @@ class AIMentorEngine:
     def match_peer_pairs(user_id: str, all_users: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Peer Pairing Agent:
-        Finds peers with complementary gaps (e.g. Alice excels in Python, needs React; Bob excels in React, needs Python).
+        Finds peers with complementary gaps.
+        Returns empty list when no complementary peers exist in the cohort.
         """
-        current_user = next((u for u in all_users if u["id"] == user_id), all_users[0])
+        if not all_users or len(all_users) <= 1:
+            return []
+
+        current_user = next((u for u in all_users if u.get("id") == user_id), None)
+        if not current_user:
+            return []
+
         curr_skills = current_user.get("skills", {})
 
         # Identify user's strengths (score >= 70) and gaps (score < 45)
