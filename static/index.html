@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antigravity | AI-Powered Learning Platform & Career Navigator</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">SkillMatrix<span class="brand-accent">.AI</span></span>
+          <span class="brand-subtitle">Adaptive Career Engine</span>
+        </div>
+      </div>
+
+      <!-- User Profile Quick Switcher -->
+      <div class="user-switcher-container">
+        <label class="switcher-label">Active Learner:</label>
+        <select id="user-select" class="user-select-dropdown" onchange="switchUser(this.value)">
+          <option value="usr_alex_student">Alex Chen (Student • Full Stack Dev)</option>
+          <option value="usr_maya_seeker">Maya Patel (Job Seeker • AI/ML Engineer)</option>
+          <option value="usr_david_pro">David Miller (Working Pro • Cloud/DevOps)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Vault Security Badge -->
+      <div class="vault-status-pill" title="AES-256-GCM Token Vault Active with KMS Data Isolation">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>Token Vault: <strong class="text-success">AES-256-GCM</strong></span>
+      </div>
+
+      <!-- Gamification XP & Streak -->
+      <div class="header-stat streak-stat" title="Current Daily Learning Streak">
+        <span class="stat-icon">🔥</span>
+        <span id="header-streak">12 Days</span>
+      </div>
+
+      <div class="header-stat xp-stat" title="Total Experience Points">
+        <span class="stat-icon">⚡</span>
+        <span id="header-xp">1,420 XP</span>
+      </div>
+
+      <div class="user-avatar-badge" id="header-avatar" title="Google Authenticated Profile">
+        AC
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Navigation Bar -->
+  <nav class="nav-tabs-bar">
+    <button class="nav-tab active" data-tab="dashboard" onclick="setTab('dashboard')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-tab" data-tab="roadmap" onclick="setTab('roadmap')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Roadmap & DAG
+    </button>
+    <button class="nav-tab" data-tab="skills" onclick="setTab('skills')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+      Skill Analysis & Pivot
+    </button>
+    <button class="nav-tab" data-tab="tests" onclick="setTab('tests')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      Adaptive Tests & Sandbox
+    </button>
+    <button class="nav-tab" data-tab="interview" onclick="setTab('interview')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      Mock Interview Agent
+    </button>
+    <button class="nav-tab" data-tab="mentor" onclick="setTab('mentor')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      AI Mentor & Check-in
+    </button>
+    <button class="nav-tab" data-tab="connectors" onclick="setTab('connectors')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+      Accounts & Token Vault
+    </button>
+    <button class="nav-tab" data-tab="analytics" onclick="setTab('analytics')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Intelligence & Twin
+    </button>
+  </nav>
+
+  <!-- Main View Container -->
+  <main class="content-container">
+
+    <!-- TAB 1: DASHBOARD -->
+    <section id="tab-dashboard" class="tab-pane active">
+      <!-- Career Goal Match Hero Banner -->
+      <div class="career-banner card">
+        <div class="career-banner-left">
+          <div class="badge-role" id="dash-user-type">STUDENT PROFILE</div>
+          <h1 class="target-career-heading">Target Goal: <span id="dash-target-role" class="text-gradient">Full Stack Developer</span></h1>
+          <p class="role-desc" id="dash-role-desc">Architects modern web applications across frontend UI, server-side APIs, database modeling, and DevOps deployment.</p>
+          
+          <div class="career-meta-row">
+            <div class="meta-item"><span class="meta-label">Market Salary:</span> <strong id="dash-salary">$95k - $145k</strong></div>
+            <div class="meta-item"><span class="meta-label">Demand Growth:</span> <strong class="text-success" id="dash-growth">+22% YoY</strong></div>
+            <div class="meta-item"><span class="meta-label">Est. Time to Job-Ready:</span> <strong id="dash-weeks">6 Weeks</strong></div>
+          </div>
+        </div>
+
+        <div class="career-banner-right">
+          <div class="match-gauge-circle">
+            <svg viewBox="0 0 36 36" class="circular-chart">
+              <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path id="dash-gauge-fill" class="circle-progress" stroke-dasharray="46, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            </svg>
+            <div class="gauge-center-text">
+              <span id="dash-match-percent" class="gauge-number">46%</span>
+              <span class="gauge-caption">Career Match</span>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="setTab('skills')">Simulate Career Pivot →</button>
+        </div>
+      </div>
+
+      <!-- Missing Skills Alert Callout -->
+      <div class="card alert-card">
+        <div class="alert-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="alert-content">
+          <h4>Career Skill Gap Analysis Detected</h4>
+          <p id="dash-gap-explanation">Your Python (84%) and SQL (78%) are verified strong. However, to match <strong>Full Stack Developer</strong> requirements, you are missing: <span class="tag-missing">JavaScript</span>, <span class="tag-missing">React</span>, <span class="tag-missing">Node.js</span>.</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="setTab('roadmap')">View Auto-Generated Roadmap</button>
+      </div>
+
+      <!-- Row: Confidence Meter + Learning Twin -->
+      <div class="dashboard-grid-2">
+        <!-- Confidence Meter -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Confidence Meter</h3>
+              <p class="card-sub">Self-Rated (Perceived) vs Assessed (Demonstrated)</p>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="setTab('tests')">Take Assessment Test</button>
+          </div>
+          <div id="confidence-meter-list" class="confidence-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Learning Twin Profile -->
+        <div class="card twin-card">
+          <div class="card-header">
+            <div>
+              <div class="twin-badge">● LIVE TELEMETRY</div>
+              <h3 class="card-title">Learning Twin</h3>
+              <p class="card-sub">Mirrors your pace, retention curve, and focus habits</p>
+            </div>
+            <span class="chip chip-success" id="twin-status">SYNCHRONIZED</span>
+          </div>
+          
+          <div class="twin-metrics-grid">
+            <div class="twin-metric">
+              <span class="tm-label">Study Velocity</span>
+              <strong class="tm-value text-accent" id="twin-velocity">118 XP/day</strong>
+            </div>
+            <div class="twin-metric">
+              <span class="tm-label">Memory Stability</span>
+              <strong class="tm-value text-success" id="twin-retention">88% Retention</strong>
+            </div>
+            <div class="twin-metric">
+              <span class="tm-label">Peak Focus Window</span>
+              <strong class="tm-value" id="twin-peak">2:00 PM - 6:00 PM</strong>
+            </div>
+            <div class="twin-metric">
+              <span class="tm-label">Predicted Completion</span>
+              <strong class="tm-value" id="twin-predicted">In 6 Weeks</strong>
+            </div>
+          </div>
+
+          <div class="twin-habit-bar">
+            <div class="th-label">Optimal Learning Modality:</div>
+            <div class="th-value" id="twin-modality">Interactive Code Labs & Micro-Quizzes (45m Sessions)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row: Personalized Quests & Cohort Leaderboard -->
+      <div class="dashboard-grid-2">
+        <!-- Gamified Quests -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Daily & Weekly Quests</h3>
+            <span class="badge-xp" id="level-title-badge">Code Apprentice</span>
+          </div>
+          <div id="quests-container" class="quests-list">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Quick AI Mentor Check-in Card -->
+        <div class="card mentor-quick-card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Weekly AI Mentor Check-in</h3>
+              <p class="card-sub">Ada adjusts your curriculum based on your weekly workload</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openCheckinModal()">Start Check-in</button>
+          </div>
+          <p class="mentor-quote">"I noticed you completed the Python algorithmic challenge with ease! Let's adjust your schedule around your upcoming midterm exam so you keep your 12-day streak without fatigue."</p>
+          <div class="checkin-action-row">
+            <button class="btn btn-secondary btn-sm" onclick="setTab('mentor')">Chat with Ada →</button>
+            <button class="btn btn-ghost btn-sm" onclick="setTab('roadmap')">Inspect Roadmap DAG</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: ROADMAP & VISUAL DAG -->
+    <section id="tab-roadmap" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Personalized Learning Roadmap & Visual DAG</h2>
+            <p class="card-sub">Interactive Dependency Graph. Advanced topics stay locked until prerequisites are satisfied.</p>
+          </div>
+          <div class="legend-row">
+            <span class="legend-item"><span class="dot dot-completed"></span> Completed</span>
+            <span class="legend-item"><span class="dot dot-unlocked"></span> Unlocked (Ready)</span>
+            <span class="legend-item"><span class="dot dot-locked"></span> Locked (Prerequisites Required)</span>
+          </div>
+        </div>
+
+        <!-- Visual Dependency Graph Container -->
+        <div class="dag-canvas-container" id="dag-container">
+          <!-- Interactive SVG/HTML node DAG rendered here -->
+        </div>
+
+        <!-- Course Details Drawer -->
+        <div id="course-detail-drawer" class="course-drawer hidden">
+          <div class="drawer-header">
+            <div>
+              <span class="drawer-category" id="drawer-category">JAVASCRIPT</span>
+              <h3 id="drawer-title" class="drawer-title">Modern JavaScript Deep Dive</h3>
+            </div>
+            <button class="btn-close" onclick="closeDrawer()">&times;</button>
+          </div>
+          <div class="drawer-body">
+            <div class="why-pick-box">
+              <strong>💡 Why this course?</strong>
+              <p id="drawer-why">Bridges the #1 critical gap identified in your profile.</p>
+            </div>
+            <div class="drawer-meta-grid">
+              <div><span>Provider:</span> <strong id="drawer-provider">Platform Interactive Labs</strong></div>
+              <div><span>Estimated Time:</span> <strong id="drawer-duration">10 Hours</strong></div>
+              <div><span>Difficulty:</span> <strong id="drawer-difficulty">Intermediate</strong></div>
+              <div><span>XP Bounty:</span> <strong class="text-accent" id="drawer-xp">+350 XP</strong></div>
+            </div>
+            <div class="drawer-exercise-box">
+              <strong>🛠 Practical Exercise:</strong>
+              <p id="drawer-exercise">Build an asynchronous task queue with microtask prioritization.</p>
+            </div>
+            <div class="drawer-actions">
+              <button id="drawer-action-btn" class="btn btn-primary" onclick="markCurrentCourseCompleted()">Mark Module Completed & Unlock Next</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: SKILL ANALYSIS & CAREER PIVOT -->
+    <section id="tab-skills" class="tab-pane">
+      <div class="dashboard-grid-2">
+        <!-- Self-Rating & Assessed Skills -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Profile Skills Matrix</h2>
+              <p class="card-sub">Rate your skills (1-5 stars). Tested assessments automatically update your verified score.</p>
+            </div>
+          </div>
+          <div class="skills-editor-list" id="skills-editor-list">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Career Pivot Simulator -->
+        <div class="card pivot-card">
+          <div class="card-header">
+            <div>
+              <span class="chip chip-purple">WHAT-IF ENGINE</span>
+              <h2 class="card-title">Career Pivot Simulator</h2>
+              <p class="card-sub">Thinking of changing goals? See instant roadmap diffs and transferred skill efficiency.</p>
+            </div>
+          </div>
+
+          <div class="pivot-controls">
+            <label class="pivot-label">Simulate Target Role:</label>
+            <select id="pivot-role-select" class="form-select" onchange="runCareerPivot(this.value)">
+              <option value="AI / ML Engineer">AI / ML Engineer</option>
+              <option value="Cloud & DevOps Engineer">Cloud & DevOps Engineer</option>
+              <option value="Data Scientist">Data Scientist</option>
+              <option value="Full Stack Developer">Full Stack Developer</option>
+            </select>
+          </div>
+
+          <div id="pivot-results-container" class="pivot-results">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: ADAPTIVE TESTS & LIVE CODE SANDBOX -->
+    <section id="tab-tests" class="tab-pane">
+      <div class="dashboard-grid-2">
+        <!-- IRT Adaptive Test Panel -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <span class="chip chip-accent" id="test-difficulty-chip">DIFFICULTY: LEVEL 2</span>
+              <h3 class="card-title" id="test-topic-title">Adaptive Knowledge Check</h3>
+              <p class="card-sub">Questions dynamically adjust difficulty based on your learning rate</p>
+            </div>
+            <span class="badge-xp" id="test-theta-badge">Ability θ: +0.42</span>
+          </div>
+
+          <div class="test-body" id="test-body-container">
+            <p class="test-question-text" id="test-question-text">Loading personalized question...</p>
+            <pre class="code-preview" id="test-code-snippet"><code></code></pre>
+            <div class="options-container" id="test-options-container">
+              <!-- Radio/Button options -->
+            </div>
+            <div id="test-scaffolding-box" class="hint-box hidden">
+              💡 <strong>Adaptive Hint for Slow Learners:</strong>
+              <span id="test-hint-text"></span>
+            </div>
+            <div class="test-actions">
+              <button class="btn btn-primary" id="btn-submit-answer" onclick="submitTestAnswer()">Submit Answer</button>
+              <button class="btn btn-secondary hidden" id="btn-next-question" onclick="loadNextQuestion()">Next Question →</button>
+            </div>
+            <div id="test-feedback-box" class="feedback-box hidden"></div>
+          </div>
+        </div>
+
+        <!-- Live Code Sandbox & Micro-Quiz in Code -->
+        <div class="card sandbox-card">
+          <div class="card-header">
+            <div>
+              <span class="chip chip-blue">LIVE ENVIRONMENT</span>
+              <h3 class="card-title">Live Code Sandbox & Micro-Quizzes</h3>
+              <p class="card-sub">Quizzes appear inside code comments. Execute live test assertions.</p>
+            </div>
+            <div class="sandbox-lang-picker">
+              <button class="btn-lang active" onclick="setSandboxLang('python')">Python 3</button>
+              <button class="btn-lang" onclick="setSandboxLang('javascript')">JavaScript (ES6)</button>
+            </div>
+          </div>
+
+          <div class="sandbox-editor-wrapper">
+            <textarea id="sandbox-code-editor" class="code-textarea" spellcheck="false"></textarea>
+          </div>
+
+          <div class="sandbox-toolbar">
+            <button class="btn btn-success btn-sm" onclick="runSandboxCode()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Execute Code & Run Tests
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="loadMicroQuizCode()">Insert Micro-Quiz in Code</button>
+          </div>
+
+          <!-- Sandbox Terminal Output -->
+          <div class="sandbox-terminal" id="sandbox-terminal">
+            <div class="term-header">CONSOLE OUTPUT & TEST ASSERTIONS</div>
+            <pre class="term-content" id="sandbox-terminal-out">Ready. Click 'Execute Code' to run unit tests...</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: MOCK INTERVIEW AGENT -->
+    <section id="tab-interview" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <span class="chip chip-purple">ROLE-SPECIFIC SIMULATION</span>
+            <h2 class="card-title">AI Mock Interview Agent for <span id="interview-role-label">Full Stack Developer</span></h2>
+            <p class="card-sub">Simulates realistic technical & behavioral interviews with scored rubrics across 4 dimensions.</p>
+          </div>
+        </div>
+
+        <div class="interview-arena">
+          <div class="interview-prompt-box">
+            <div class="interview-agent-avatar">🤖</div>
+            <div class="interview-prompt-content">
+              <span class="badge-category" id="interview-q-category">Frontend Architecture</span>
+              <h3 id="interview-q-text">"Walk me through what happens under the hood when a user visits a modern Single Page Application (SPA)..."</h3>
+            </div>
+          </div>
+
+          <div class="interview-answer-box">
+            <label class="form-label">Your Response (Type or Speak using STAR method):</label>
+            <textarea id="interview-answer-input" class="interview-textarea" rows="6" placeholder="Provide a structured, architectural answer discussing client-side routing, virtual DOM reconciliation, memory considerations, and caching..."></textarea>
+            
+            <div class="interview-controls">
+              <button class="btn btn-primary" onclick="submitInterviewAnswer()">Submit for Rubric Evaluation</button>
+              <button class="btn btn-secondary" onclick="fillSampleInterviewAnswer()">Fill Sample High-Scoring Answer</button>
+            </div>
+          </div>
+
+          <!-- Evaluation Results -->
+          <div id="interview-results-panel" class="interview-eval-panel hidden">
+            <!-- Dynamically populated rubric scores -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: AI MENTOR & CHECK-IN -->
+    <section id="tab-mentor" class="tab-pane">
+      <div class="dashboard-grid-2">
+        <!-- Interactive Mentor Chat -->
+        <div class="card chat-card">
+          <div class="card-header">
+            <div class="mentor-header-info">
+              <div class="mentor-avatar">A</div>
+              <div>
+                <h3 class="card-title">Ada • Senior AI Career Mentor</h3>
+                <p class="card-sub">Context-aware guidance adapted to your learning velocity</p>
+              </div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="openCheckinModal()">Weekly Check-in</button>
+          </div>
+
+          <div class="chat-messages" id="chat-messages-container">
+            <!-- Messages populated via JS -->
+          </div>
+
+          <form class="chat-input-bar" onsubmit="sendMentorMessage(event)">
+            <input type="text" id="chat-user-input" class="chat-input" placeholder="Ask Ada about your roadmap, stuck concepts, or career pivot..." autocomplete="off">
+            <button type="submit" class="btn btn-primary">Send</button>
+          </form>
+        </div>
+
+        <!-- Explain-Back Mode (Feynman Technique) -->
+        <div class="card feynman-card">
+          <div class="card-header">
+            <div>
+              <span class="chip chip-success">FEYNMAN TECHNIQUE</span>
+              <h3 class="card-title">Explain-Back Mode</h3>
+              <p class="card-sub">Teach a concept in your own words. The agent grades your depth and flags misconceptions.</p>
+            </div>
+          </div>
+
+          <div class="feynman-controls">
+            <label class="form-label">Select Concept to Explain:</label>
+            <select id="feynman-concept-select" class="form-select">
+              <option value="JavaScript Event Loop">JavaScript Event Loop & Microtasks</option>
+              <option value="Closures & Scope">Closures & Lexical Scope in JavaScript</option>
+              <option value="Database Indexing">Database Indexing & B-Trees in SQL</option>
+              <option value="Gradient Descent">Gradient Descent & Loss Optimization in ML</option>
+            </select>
+
+            <label class="form-label" style="margin-top: 1rem;">Your Explanation:</label>
+            <textarea id="feynman-text-input" class="feynman-textarea" rows="5" placeholder="Explain this concept as if you were teaching a junior developer or classmate..."></textarea>
+
+            <div class="feynman-actions">
+              <button class="btn btn-primary" onclick="submitExplainBack()">Grade My Explanation</button>
+              <button class="btn btn-secondary" onclick="fillSampleExplanation()">Fill Sample Explanation</button>
+            </div>
+          </div>
+
+          <div id="feynman-feedback-box" class="feynman-feedback hidden">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 7: ACCOUNTS & TOKEN VAULT -->
+    <section id="tab-connectors" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Account Connections & Token Vault</h2>
+            <p class="card-sub">Zero-Owner-Keys Architecture. All services run strictly on YOUR personal credentials.</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="openManualImportModal()">+ Manual CSV / PDF Import</button>
+        </div>
+
+        <!-- Token Vault Security Explainer -->
+        <div class="vault-security-summary">
+          <div class="v-feature">
+            <div class="vf-icon">🔒</div>
+            <div>
+              <strong>AES-256-GCM Encryption</strong>
+              <p>Every token encrypted with a 96-bit unique nonce and NIST SP 800-38D authenticated tag.</p>
+            </div>
+          </div>
+          <div class="v-feature">
+            <div class="vf-icon">🔑</div>
+            <div>
+              <strong>Unique Data Key Per User</strong>
+              <p>Keys derived via PBKDF2-HMAC-SHA256 from master KMS key + user-specific salt.</p>
+            </div>
+          </div>
+          <div class="v-feature">
+            <div class="vf-icon">🛡️</div>
+            <div>
+              <strong>Zero Token Leakage</strong>
+              <p>Tokens NEVER sent to the browser or written to server logs. Proxied server-side.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connectors Grid -->
+        <div class="connectors-grid" id="connectors-grid">
+          <!-- Populated dynamically from JSON connector configs -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 8: ADVANCED INTELLIGENCE & TWIN -->
+    <section id="tab-analytics" class="tab-pane">
+      <div class="dashboard-grid-2">
+        <!-- Struggle Detector -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <span class="chip chip-warning">DIAGNOSTIC RADAR</span>
+              <h3 class="card-title">Struggle Detector</h3>
+              <p class="card-sub">Spots repeated failure patterns across quizzes and pinpoints root gaps</p>
+            </div>
+          </div>
+          <div id="struggles-container" class="struggles-list">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Spaced Repetition & Skill Decay -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <span class="chip chip-accent">EBBINGHAUS FORGETTING CURVE</span>
+              <h3 class="card-title">Skill Decay Monitor</h3>
+              <p class="card-sub">Retention drops over time. 2-minute refreshers restore skills to 100%.</p>
+            </div>
+          </div>
+          <div id="skill-decay-list" class="decay-list">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid-2">
+        <!-- Peer Pairing Agent -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <span class="chip chip-blue">SYNERGY MATCHER</span>
+              <h3 class="card-title">Peer Pairing Agent</h3>
+              <p class="card-sub">Matches you with learners who have complementary skill gaps</p>
+            </div>
+          </div>
+          <div id="peer-pairing-list" class="peers-list">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Skill Passport Shareable View -->
+        <div class="card passport-card">
+          <div class="card-header">
+            <div>
+              <span class="chip chip-success">VERIFIABLE CREDENTIAL</span>
+              <h3 class="card-title">Skill Passport</h3>
+              <p class="card-sub">Share your verified competencies with recruiters as ONE link</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="copyPassportLink()">Copy Link</button>
+          </div>
+          <div id="passport-preview" class="passport-body">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Cohort Heatmap & Time Budget Scheduling -->
+      <div class="dashboard-grid-2">
+        <!-- University Cohort Heatmap -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <span class="chip chip-purple">ACADEMIC / TEAM DASHBOARD</span>
+              <h3 class="card-title">Cohort Heatmap</h3>
+              <p class="card-sub">Displays skill mastery across class or engineering team</p>
+            </div>
+          </div>
+          <div id="cohort-heatmap-container" class="heatmap-table-wrapper">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Time-Budget Scheduling Around Exams / Work -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <span class="chip chip-accent">EXAM & SPRINT ADAPTATION</span>
+              <h3 class="card-title">Time-Budget Scheduler</h3>
+              <p class="card-sub">Automatically softens workload during exams or work crunch weeks</p>
+            </div>
+          </div>
+          <div class="scheduler-controls">
+            <div class="sched-budget-input">
+              <label>Weekly Base Hours:</label>
+              <input type="number" id="sched-weekly-hours" value="14" min="4" max="40" onchange="updateScheduleBudget(this.value)">
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="toggleExamBlock()">+ Toggle Midterm Exam Week</button>
+          </div>
+          <div id="schedule-timeline-container" class="timeline-container">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: Weekly Check-in Dialog -->
+  <div id="modal-checkin" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Weekly AI Mentor Diagnostic</h3>
+        <button class="btn-close" onclick="closeCheckinModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label">1. How many hours did you realistically invest in learning this week?</label>
+        <input type="number" id="checkin-hours" class="form-input" value="10" min="1" max="50">
+
+        <label class="form-label" style="margin-top: 1rem;">2. What concept felt most challenging or caused friction?</label>
+        <select id="checkin-struggle" class="form-select">
+          <option value="None">None - Everything was smooth</option>
+          <option value="JavaScript Closures">JavaScript Closures & Lexical Scope</option>
+          <option value="React Hooks">React useEffect & Stale State</option>
+          <option value="Async Event Loop">Async Event Loop & Promises</option>
+          <option value="SQL Query Planning">SQL B-Tree Indexing</option>
+        </select>
+
+        <label class="form-label" style="margin-top: 1rem;">3. Has your career target or timeline shifted?</label>
+        <div class="radio-row">
+          <label><input type="radio" name="checkin-goal" value="no" checked> No, staying focused on current goal</label>
+          <label><input type="radio" name="checkin-goal" value="yes"> Yes, I want to explore a career pivot</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeCheckinModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitWeeklyCheckin()">Adjust My Roadmap & Plan (+100 XP)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: OAuth Scope Consent & Connect Dialog -->
+  <div id="modal-oauth" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="oauth-modal-title">Connect Account</h3>
+        <button class="btn-close" onclick="closeOAuthModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="oauth-modal-desc">This application uses the <strong>OAuth 2.0 Authorization Code Flow with PKCE (RFC 7636)</strong>.</p>
+        <div class="pkce-info-box">
+          <small>Code Challenge Method: <strong>S256</strong> (SHA-256)</small><br>
+          <small>State: <strong id="oauth-modal-state">...</strong></small>
+        </div>
+
+        <h4 style="margin-top: 1rem; margin-bottom: 0.5rem;">Requested Minimal Scopes:</h4>
+        <div id="oauth-scopes-list" class="scopes-breakdown">
+          <!-- Scopes with descriptions -->
+        </div>
+
+        <div id="pat-input-container" class="pat-section hidden" style="margin-top: 1rem;">
+          <label class="form-label">Personal Access Token (PAT):</label>
+          <input type="password" id="pat-input" class="form-input" placeholder="Paste personal token here...">
+          <small class="text-muted">Token will be vaulted immediately with AES-256-GCM.</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeOAuthModal()">Cancel</button>
+        <button id="btn-confirm-connect" class="btn btn-primary" onclick="confirmOAuthConnect()">Authorize & Vault Token</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Manual CSV/PDF Import Dialog -->
+  <div id="modal-import" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Manual Credential Import (CSV / PDF)</h3>
+        <button class="btn-close" onclick="closeManualImportModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>For platforms without public OAuth APIs (e.g. Coursera PDF certificates or LinkedIn CSV exports):</p>
+        <label class="form-label">Target Provider:</label>
+        <select id="import-provider-select" class="form-select">
+          <option value="coursera">Coursera Course Records</option>
+          <option value="linkedin">LinkedIn Skill Export</option>
+          <option value="udemy">Udemy Certificates</option>
+        </select>
+
+        <label class="form-label" style="margin-top: 1rem;">Paste CSV Data or Certificate Text:</label>
+        <textarea id="import-content" class="form-input" rows="5" placeholder="course_title,institution,grade,completion_date&#10;Data Structures,Berkeley,98%,2025-10-15&#10;Web Development,DeepLearning.AI,94%,2026-01-20"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeManualImportModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitManualImport()">Ingest Credentials</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App JavaScript Modules -->
+  <script src="js/app.js"></script>
+</body>
+</html>
