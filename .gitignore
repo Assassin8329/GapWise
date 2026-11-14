@@ -1,0 +1,28 @@
+# Secrets and Environment Variables (Strictly Never Committed)
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.cert
+config/kms.json
+vault.key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs & Runtime
+*.log
+*.sqlite3-journal
