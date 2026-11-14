@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Antigravity | AI-Powered Learning Platform & Career Navigator</title>
+  <title>GapWise | AI-Powered Learning Platform & Career Navigator</title>
   <link rel="stylesheet" href="css/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -17,47 +17,50 @@
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         </div>
         <div class="brand-text">
-          <span class="brand-title">SkillMatrix<span class="brand-accent">.AI</span></span>
-          <span class="brand-subtitle">Adaptive Career Engine</span>
+          <span class="brand-title">GapWise</span>
+          <span class="brand-subtitle">AI Skill Gap & Career Engine</span>
         </div>
       </div>
 
-      <!-- User Profile Quick Switcher -->
-      <div class="user-switcher-container">
-        <label class="switcher-label">Active Learner:</label>
+      <!-- Real User Profile Selector / Status -->
+      <div class="user-switcher-container" id="user-switcher-container">
+        <label class="switcher-label">Learner:</label>
         <select id="user-select" class="user-select-dropdown" onchange="switchUser(this.value)">
-          <option value="usr_alex_student">Alex Chen (Student • Full Stack Dev)</option>
-          <option value="usr_maya_seeker">Maya Patel (Job Seeker • AI/ML Engineer)</option>
-          <option value="usr_david_pro">David Miller (Working Pro • Cloud/DevOps)</option>
+          <option value="">No Active Profile (Guest)</option>
         </select>
+        <button class="btn btn-ghost btn-sm" onclick="openProfileModal()">+ New Profile</button>
       </div>
     </div>
 
     <div class="header-right">
-      <!-- Vault Security Badge -->
-      <div class="vault-status-pill" title="AES-256-GCM Token Vault Active with KMS Data Isolation">
+      <!-- Token Vault Security Status -->
+      <div class="vault-status-pill" title="AES-256-GCM Token Vault Active with Unique PBKDF2 Data Keys">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         <span>Token Vault: <strong class="text-success">AES-256-GCM</strong></span>
       </div>
 
-      <!-- Gamification XP & Streak -->
-      <div class="header-stat streak-stat" title="Current Daily Learning Streak">
+      <!-- Streak & XP -->
+      <div class="header-stat streak-stat" title="Active Study Streak">
         <span class="stat-icon">🔥</span>
-        <span id="header-streak">12 Days</span>
+        <span id="header-streak">0 Days</span>
       </div>
 
-      <div class="header-stat xp-stat" title="Total Experience Points">
+      <div class="header-stat xp-stat" title="Total Real XP Earned">
         <span class="stat-icon">⚡</span>
-        <span id="header-xp">1,420 XP</span>
+        <span id="header-xp">0 XP</span>
       </div>
 
-      <div class="user-avatar-badge" id="header-avatar" title="Google Authenticated Profile">
-        AC
+      <!-- Real Google Sign-in / Avatar Button -->
+      <div id="auth-actions-header">
+        <button class="btn btn-google-signin btn-sm" onclick="openGoogleAuthModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          <span id="auth-btn-label">Sign in with Google</span>
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- Main Navigation Bar -->
+  <!-- Navigation Bar -->
   <nav class="nav-tabs-bar">
     <button class="nav-tab active" data-tab="dashboard" onclick="setTab('dashboard')">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
@@ -98,7 +101,7 @@
 
     <!-- TAB 1: DASHBOARD -->
     <section id="tab-dashboard" class="tab-pane active">
-      <!-- Career Goal Match Hero Banner -->
+      <!-- Career Goal Match Banner -->
       <div class="career-banner card">
         <div class="career-banner-left">
           <div class="badge-role" id="dash-user-type">STUDENT PROFILE</div>
@@ -108,7 +111,7 @@
           <div class="career-meta-row">
             <div class="meta-item"><span class="meta-label">Market Salary:</span> <strong id="dash-salary">$95k - $145k</strong></div>
             <div class="meta-item"><span class="meta-label">Demand Growth:</span> <strong class="text-success" id="dash-growth">+22% YoY</strong></div>
-            <div class="meta-item"><span class="meta-label">Est. Time to Job-Ready:</span> <strong id="dash-weeks">6 Weeks</strong></div>
+            <div class="meta-item"><span class="meta-label">Est. Time to Job-Ready:</span> <strong id="dash-weeks">0 Weeks</strong></div>
           </div>
         </div>
 
@@ -116,10 +119,10 @@
           <div class="match-gauge-circle">
             <svg viewBox="0 0 36 36" class="circular-chart">
               <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-              <path id="dash-gauge-fill" class="circle-progress" stroke-dasharray="46, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path id="dash-gauge-fill" class="circle-progress" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
             </svg>
             <div class="gauge-center-text">
-              <span id="dash-match-percent" class="gauge-number">46%</span>
+              <span id="dash-match-percent" class="gauge-number">0%</span>
               <span class="gauge-caption">Career Match</span>
             </div>
           </div>
@@ -128,15 +131,15 @@
       </div>
 
       <!-- Missing Skills Alert Callout -->
-      <div class="card alert-card">
+      <div class="card alert-card" id="dash-gap-alert-card">
         <div class="alert-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         </div>
         <div class="alert-content">
-          <h4>Career Skill Gap Analysis Detected</h4>
-          <p id="dash-gap-explanation">Your Python (84%) and SQL (78%) are verified strong. However, to match <strong>Full Stack Developer</strong> requirements, you are missing: <span class="tag-missing">JavaScript</span>, <span class="tag-missing">React</span>, <span class="tag-missing">Node.js</span>.</p>
+          <h4>Career Skill Gap Analysis</h4>
+          <p id="dash-gap-explanation">No skills added yet. Click <strong>'+ Add Skills'</strong> below or self-rate skills in the Skill Analysis tab to compute your gaps against the target role.</p>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="setTab('roadmap')">View Auto-Generated Roadmap</button>
+        <button class="btn btn-primary btn-sm" onclick="openAddSkillModal()">+ Add Skills</button>
       </div>
 
       <!-- Row: Confidence Meter + Learning Twin -->
@@ -148,10 +151,13 @@
               <h3 class="card-title">Confidence Meter</h3>
               <p class="card-sub">Self-Rated (Perceived) vs Assessed (Demonstrated)</p>
             </div>
-            <button class="btn btn-ghost btn-sm" onclick="setTab('tests')">Take Assessment Test</button>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-ghost btn-sm" onclick="openAddSkillModal()">+ Add Skill</button>
+              <button class="btn btn-secondary btn-sm" onclick="setTab('tests')">Assess</button>
+            </div>
           </div>
           <div id="confidence-meter-list" class="confidence-list">
-            <!-- Dynamically populated -->
+            <!-- Dynamically populated or empty state -->
           </div>
         </div>
 
@@ -163,17 +169,17 @@
               <h3 class="card-title">Learning Twin</h3>
               <p class="card-sub">Mirrors your pace, retention curve, and focus habits</p>
             </div>
-            <span class="chip chip-success" id="twin-status">SYNCHRONIZED</span>
+            <span class="chip chip-success" id="twin-status">ACTIVE</span>
           </div>
           
           <div class="twin-metrics-grid">
             <div class="twin-metric">
               <span class="tm-label">Study Velocity</span>
-              <strong class="tm-value text-accent" id="twin-velocity">118 XP/day</strong>
+              <strong class="tm-value text-accent" id="twin-velocity">0 XP/day</strong>
             </div>
             <div class="twin-metric">
               <span class="tm-label">Memory Stability</span>
-              <strong class="tm-value text-success" id="twin-retention">88% Retention</strong>
+              <strong class="tm-value text-success" id="twin-retention">65% Stability</strong>
             </div>
             <div class="twin-metric">
               <span class="tm-label">Peak Focus Window</span>
@@ -181,7 +187,7 @@
             </div>
             <div class="twin-metric">
               <span class="tm-label">Predicted Completion</span>
-              <strong class="tm-value" id="twin-predicted">In 6 Weeks</strong>
+              <strong class="tm-value" id="twin-predicted">0 Weeks</strong>
             </div>
           </div>
 
@@ -192,20 +198,18 @@
         </div>
       </div>
 
-      <!-- Row: Personalized Quests & Cohort Leaderboard -->
+      <!-- Row: Quests & AI Mentor -->
       <div class="dashboard-grid-2">
-        <!-- Gamified Quests -->
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">Daily & Weekly Quests</h3>
-            <span class="badge-xp" id="level-title-badge">Code Apprentice</span>
+            <h3 class="card-title">Active Quests</h3>
+            <span class="badge-xp" id="level-title-badge">Novice Explorer</span>
           </div>
           <div id="quests-container" class="quests-list">
             <!-- Populated via JS -->
           </div>
         </div>
 
-        <!-- Quick AI Mentor Check-in Card -->
         <div class="card mentor-quick-card">
           <div class="card-header">
             <div>
@@ -214,10 +218,10 @@
             </div>
             <button class="btn btn-primary btn-sm" onclick="openCheckinModal()">Start Check-in</button>
           </div>
-          <p class="mentor-quote">"I noticed you completed the Python algorithmic challenge with ease! Let's adjust your schedule around your upcoming midterm exam so you keep your 12-day streak without fatigue."</p>
+          <p class="mentor-quote">"Welcome to GapWise! Add your current skills or connect your GitHub/Coursera accounts so I can analyze your gaps and construct your personalized career roadmap."</p>
           <div class="checkin-action-row">
             <button class="btn btn-secondary btn-sm" onclick="setTab('mentor')">Chat with Ada →</button>
-            <button class="btn btn-ghost btn-sm" onclick="setTab('roadmap')">Inspect Roadmap DAG</button>
+            <button class="btn btn-ghost btn-sm" onclick="setTab('roadmap')">Inspect Roadmap</button>
           </div>
         </div>
       </div>
@@ -238,34 +242,32 @@
           </div>
         </div>
 
-        <!-- Visual Dependency Graph Container -->
         <div class="dag-canvas-container" id="dag-container">
           <!-- Interactive SVG/HTML node DAG rendered here -->
         </div>
 
-        <!-- Course Details Drawer -->
         <div id="course-detail-drawer" class="course-drawer hidden">
           <div class="drawer-header">
             <div>
               <span class="drawer-category" id="drawer-category">JAVASCRIPT</span>
-              <h3 id="drawer-title" class="drawer-title">Modern JavaScript Deep Dive</h3>
+              <h3 id="drawer-title" class="drawer-title">Module Title</h3>
             </div>
             <button class="btn-close" onclick="closeDrawer()">&times;</button>
           </div>
           <div class="drawer-body">
             <div class="why-pick-box">
               <strong>💡 Why this course?</strong>
-              <p id="drawer-why">Bridges the #1 critical gap identified in your profile.</p>
+              <p id="drawer-why">Personalized rationale</p>
             </div>
             <div class="drawer-meta-grid">
-              <div><span>Provider:</span> <strong id="drawer-provider">Platform Interactive Labs</strong></div>
+              <div><span>Provider:</span> <strong id="drawer-provider">Platform Labs</strong></div>
               <div><span>Estimated Time:</span> <strong id="drawer-duration">10 Hours</strong></div>
               <div><span>Difficulty:</span> <strong id="drawer-difficulty">Intermediate</strong></div>
               <div><span>XP Bounty:</span> <strong class="text-accent" id="drawer-xp">+350 XP</strong></div>
             </div>
             <div class="drawer-exercise-box">
               <strong>🛠 Practical Exercise:</strong>
-              <p id="drawer-exercise">Build an asynchronous task queue with microtask prioritization.</p>
+              <p id="drawer-exercise">Exercise description</p>
             </div>
             <div class="drawer-actions">
               <button id="drawer-action-btn" class="btn btn-primary" onclick="markCurrentCourseCompleted()">Mark Module Completed & Unlock Next</button>
@@ -278,20 +280,19 @@
     <!-- TAB 3: SKILL ANALYSIS & CAREER PIVOT -->
     <section id="tab-skills" class="tab-pane">
       <div class="dashboard-grid-2">
-        <!-- Self-Rating & Assessed Skills -->
         <div class="card">
           <div class="card-header">
             <div>
               <h2 class="card-title">Profile Skills Matrix</h2>
-              <p class="card-sub">Rate your skills (1-5 stars). Tested assessments automatically update your verified score.</p>
+              <p class="card-sub">Self-rate your skills (1-5 stars) or add custom competencies.</p>
             </div>
+            <button class="btn btn-primary btn-sm" onclick="openAddSkillModal()">+ Add Skill</button>
           </div>
           <div class="skills-editor-list" id="skills-editor-list">
-            <!-- Populated via JS -->
+            <!-- Populated via JS or empty state -->
           </div>
         </div>
 
-        <!-- Career Pivot Simulator -->
         <div class="card pivot-card">
           <div class="card-header">
             <div>
@@ -304,10 +305,10 @@
           <div class="pivot-controls">
             <label class="pivot-label">Simulate Target Role:</label>
             <select id="pivot-role-select" class="form-select" onchange="runCareerPivot(this.value)">
+              <option value="Full Stack Developer">Full Stack Developer</option>
               <option value="AI / ML Engineer">AI / ML Engineer</option>
               <option value="Cloud & DevOps Engineer">Cloud & DevOps Engineer</option>
               <option value="Data Scientist">Data Scientist</option>
-              <option value="Full Stack Developer">Full Stack Developer</option>
             </select>
           </div>
 
@@ -321,7 +322,6 @@
     <!-- TAB 4: ADAPTIVE TESTS & LIVE CODE SANDBOX -->
     <section id="tab-tests" class="tab-pane">
       <div class="dashboard-grid-2">
-        <!-- IRT Adaptive Test Panel -->
         <div class="card">
           <div class="card-header">
             <div>
@@ -329,15 +329,13 @@
               <h3 class="card-title" id="test-topic-title">Adaptive Knowledge Check</h3>
               <p class="card-sub">Questions dynamically adjust difficulty based on your learning rate</p>
             </div>
-            <span class="badge-xp" id="test-theta-badge">Ability θ: +0.42</span>
+            <span class="badge-xp" id="test-theta-badge">Ability θ: 0.00</span>
           </div>
 
           <div class="test-body" id="test-body-container">
             <p class="test-question-text" id="test-question-text">Loading personalized question...</p>
             <pre class="code-preview" id="test-code-snippet"><code></code></pre>
-            <div class="options-container" id="test-options-container">
-              <!-- Radio/Button options -->
-            </div>
+            <div class="options-container" id="test-options-container"></div>
             <div id="test-scaffolding-box" class="hint-box hidden">
               💡 <strong>Adaptive Hint for Slow Learners:</strong>
               <span id="test-hint-text"></span>
@@ -350,7 +348,6 @@
           </div>
         </div>
 
-        <!-- Live Code Sandbox & Micro-Quiz in Code -->
         <div class="card sandbox-card">
           <div class="card-header">
             <div>
@@ -376,7 +373,6 @@
             <button class="btn btn-ghost btn-sm" onclick="loadMicroQuizCode()">Insert Micro-Quiz in Code</button>
           </div>
 
-          <!-- Sandbox Terminal Output -->
           <div class="sandbox-terminal" id="sandbox-terminal">
             <div class="term-header">CONSOLE OUTPUT & TEST ASSERTIONS</div>
             <pre class="term-content" id="sandbox-terminal-out">Ready. Click 'Execute Code' to run unit tests...</pre>
@@ -392,7 +388,7 @@
           <div>
             <span class="chip chip-purple">ROLE-SPECIFIC SIMULATION</span>
             <h2 class="card-title">AI Mock Interview Agent for <span id="interview-role-label">Full Stack Developer</span></h2>
-            <p class="card-sub">Simulates realistic technical & behavioral interviews with scored rubrics across 4 dimensions.</p>
+            <p class="card-sub">Simulates realistic technical interviews with scored rubrics across 4 dimensions.</p>
           </div>
         </div>
 
@@ -400,14 +396,14 @@
           <div class="interview-prompt-box">
             <div class="interview-agent-avatar">🤖</div>
             <div class="interview-prompt-content">
-              <span class="badge-category" id="interview-q-category">Frontend Architecture</span>
-              <h3 id="interview-q-text">"Walk me through what happens under the hood when a user visits a modern Single Page Application (SPA)..."</h3>
+              <span class="badge-category" id="interview-q-category">Architecture</span>
+              <h3 id="interview-q-text">Interview question prompt</h3>
             </div>
           </div>
 
           <div class="interview-answer-box">
             <label class="form-label">Your Response (Type or Speak using STAR method):</label>
-            <textarea id="interview-answer-input" class="interview-textarea" rows="6" placeholder="Provide a structured, architectural answer discussing client-side routing, virtual DOM reconciliation, memory considerations, and caching..."></textarea>
+            <textarea id="interview-answer-input" class="interview-textarea" rows="6" placeholder="Provide a structured, architectural answer discussing system trade-offs and edge cases..."></textarea>
             
             <div class="interview-controls">
               <button class="btn btn-primary" onclick="submitInterviewAnswer()">Submit for Rubric Evaluation</button>
@@ -415,10 +411,7 @@
             </div>
           </div>
 
-          <!-- Evaluation Results -->
-          <div id="interview-results-panel" class="interview-eval-panel hidden">
-            <!-- Dynamically populated rubric scores -->
-          </div>
+          <div id="interview-results-panel" class="interview-eval-panel hidden"></div>
         </div>
       </div>
     </section>
@@ -426,7 +419,6 @@
     <!-- TAB 6: AI MENTOR & CHECK-IN -->
     <section id="tab-mentor" class="tab-pane">
       <div class="dashboard-grid-2">
-        <!-- Interactive Mentor Chat -->
         <div class="card chat-card">
           <div class="card-header">
             <div class="mentor-header-info">
@@ -439,9 +431,7 @@
             <button class="btn btn-ghost btn-sm" onclick="openCheckinModal()">Weekly Check-in</button>
           </div>
 
-          <div class="chat-messages" id="chat-messages-container">
-            <!-- Messages populated via JS -->
-          </div>
+          <div class="chat-messages" id="chat-messages-container"></div>
 
           <form class="chat-input-bar" onsubmit="sendMentorMessage(event)">
             <input type="text" id="chat-user-input" class="chat-input" placeholder="Ask Ada about your roadmap, stuck concepts, or career pivot..." autocomplete="off">
@@ -449,7 +439,6 @@
           </form>
         </div>
 
-        <!-- Explain-Back Mode (Feynman Technique) -->
         <div class="card feynman-card">
           <div class="card-header">
             <div>
@@ -477,9 +466,7 @@
             </div>
           </div>
 
-          <div id="feynman-feedback-box" class="feynman-feedback hidden">
-            <!-- Populated via JS -->
-          </div>
+          <div id="feynman-feedback-box" class="feynman-feedback hidden"></div>
         </div>
       </div>
     </section>
@@ -495,7 +482,6 @@
           <button class="btn btn-secondary btn-sm" onclick="openManualImportModal()">+ Manual CSV / PDF Import</button>
         </div>
 
-        <!-- Token Vault Security Explainer -->
         <div class="vault-security-summary">
           <div class="v-feature">
             <div class="vf-icon">🔒</div>
@@ -520,17 +506,13 @@
           </div>
         </div>
 
-        <!-- Connectors Grid -->
-        <div class="connectors-grid" id="connectors-grid">
-          <!-- Populated dynamically from JSON connector configs -->
-        </div>
+        <div class="connectors-grid" id="connectors-grid"></div>
       </div>
     </section>
 
     <!-- TAB 8: ADVANCED INTELLIGENCE & TWIN -->
     <section id="tab-analytics" class="tab-pane">
       <div class="dashboard-grid-2">
-        <!-- Struggle Detector -->
         <div class="card">
           <div class="card-header">
             <div>
@@ -539,12 +521,9 @@
               <p class="card-sub">Spots repeated failure patterns across quizzes and pinpoints root gaps</p>
             </div>
           </div>
-          <div id="struggles-container" class="struggles-list">
-            <!-- Populated via JS -->
-          </div>
+          <div id="struggles-container" class="struggles-list"></div>
         </div>
 
-        <!-- Spaced Repetition & Skill Decay -->
         <div class="card">
           <div class="card-header">
             <div>
@@ -553,14 +532,11 @@
               <p class="card-sub">Retention drops over time. 2-minute refreshers restore skills to 100%.</p>
             </div>
           </div>
-          <div id="skill-decay-list" class="decay-list">
-            <!-- Populated via JS -->
-          </div>
+          <div id="skill-decay-list" class="decay-list"></div>
         </div>
       </div>
 
       <div class="dashboard-grid-2">
-        <!-- Peer Pairing Agent -->
         <div class="card">
           <div class="card-header">
             <div>
@@ -569,12 +545,9 @@
               <p class="card-sub">Matches you with learners who have complementary skill gaps</p>
             </div>
           </div>
-          <div id="peer-pairing-list" class="peers-list">
-            <!-- Populated via JS -->
-          </div>
+          <div id="peer-pairing-list" class="peers-list"></div>
         </div>
 
-        <!-- Skill Passport Shareable View -->
         <div class="card passport-card">
           <div class="card-header">
             <div>
@@ -584,15 +557,11 @@
             </div>
             <button class="btn btn-primary btn-sm" onclick="copyPassportLink()">Copy Link</button>
           </div>
-          <div id="passport-preview" class="passport-body">
-            <!-- Populated via JS -->
-          </div>
+          <div id="passport-preview" class="passport-body"></div>
         </div>
       </div>
 
-      <!-- Cohort Heatmap & Time Budget Scheduling -->
       <div class="dashboard-grid-2">
-        <!-- University Cohort Heatmap -->
         <div class="card">
           <div class="card-header">
             <div>
@@ -601,12 +570,9 @@
               <p class="card-sub">Displays skill mastery across class or engineering team</p>
             </div>
           </div>
-          <div id="cohort-heatmap-container" class="heatmap-table-wrapper">
-            <!-- Populated via JS -->
-          </div>
+          <div id="cohort-heatmap-container" class="heatmap-table-wrapper"></div>
         </div>
 
-        <!-- Time-Budget Scheduling Around Exams / Work -->
         <div class="card">
           <div class="card-header">
             <div>
@@ -618,18 +584,99 @@
           <div class="scheduler-controls">
             <div class="sched-budget-input">
               <label>Weekly Base Hours:</label>
-              <input type="number" id="sched-weekly-hours" value="14" min="4" max="40" onchange="updateScheduleBudget(this.value)">
+              <input type="number" id="sched-weekly-hours" value="10" min="2" max="40" onchange="updateScheduleBudget(this.value)">
             </div>
             <button class="btn btn-secondary btn-sm" onclick="toggleExamBlock()">+ Toggle Midterm Exam Week</button>
           </div>
-          <div id="schedule-timeline-container" class="timeline-container">
-            <!-- Populated via JS -->
-          </div>
+          <div id="schedule-timeline-container" class="timeline-container"></div>
         </div>
       </div>
     </section>
 
   </main>
+
+  <!-- MODAL: Google Sign-In & Profile Creation -->
+  <div id="modal-google-auth" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Sign In to GapWise</h3>
+        <button class="btn-close" onclick="closeGoogleAuthModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+          GapWise uses <strong>Google OAuth 2.0 with PKCE (RFC 7636)</strong>. Real user tokens are vaulted on the server with AES-256-GCM.
+        </p>
+
+        <label class="form-label">Google Account Email:</label>
+        <input type="email" id="auth-email-input" class="form-input" placeholder="e.g. user@gmail.com" required>
+
+        <label class="form-label" style="margin-top: 1rem;">Full Name:</label>
+        <input type="text" id="auth-name-input" class="form-input" placeholder="e.g. Sarah Jenkins">
+
+        <label class="form-label" style="margin-top: 1rem;">Learner Type:</label>
+        <select id="auth-type-input" class="form-select">
+          <option value="student">Student</option>
+          <option value="job_seeker">Job Seeker</option>
+          <option value="professional">Working Professional</option>
+        </select>
+
+        <label class="form-label" style="margin-top: 1rem;">Target Career Goal:</label>
+        <select id="auth-role-input" class="form-select">
+          <option value="Full Stack Developer">Full Stack Developer</option>
+          <option value="AI / ML Engineer">AI / ML Engineer</option>
+          <option value="Cloud & DevOps Engineer">Cloud & DevOps Engineer</option>
+          <option value="Data Scientist">Data Scientist</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeGoogleAuthModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitGoogleAuth()">Complete Google Sign-In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add Skill -->
+  <div id="modal-add-skill" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Add Real Skill to Profile</h3>
+        <button class="btn-close" onclick="closeAddSkillModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label">Skill Name:</label>
+        <input type="text" id="new-skill-name" class="form-input" placeholder="e.g. Python, SQL, React, Docker..." list="skills-suggestions">
+        <datalist id="skills-suggestions">
+          <option value="Python">
+          <option value="JavaScript">
+          <option value="React">
+          <option value="Node.js">
+          <option value="SQL">
+          <option value="HTML & CSS">
+          <option value="Docker">
+          <option value="Git">
+          <option value="PyTorch">
+          <option value="Machine Learning">
+          <option value="Linux">
+          <option value="Kubernetes">
+          <option value="AWS / GCP">
+          <option value="Terraform / IaC">
+        </datalist>
+
+        <label class="form-label" style="margin-top: 1rem;">Initial Self-Rating (1 to 5 Stars):</label>
+        <select id="new-skill-rating" class="form-select">
+          <option value="1">★☆☆☆☆ (1 Star - Novice / Learning)</option>
+          <option value="2">★★☆☆☆ (2 Stars - Elementary)</option>
+          <option value="3" selected>★★★☆☆ (3 Stars - Intermediate)</option>
+          <option value="4">★★★★☆ (4 Stars - Proficient)</option>
+          <option value="5">★★★★★ (5 Stars - Advanced / Expert)</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAddSkillModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAddSkill()">Save Skill to Profile</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: Weekly Check-in Dialog -->
   <div id="modal-checkin" class="modal-backdrop hidden">
@@ -679,9 +726,7 @@
         </div>
 
         <h4 style="margin-top: 1rem; margin-bottom: 0.5rem;">Requested Minimal Scopes:</h4>
-        <div id="oauth-scopes-list" class="scopes-breakdown">
-          <!-- Scopes with descriptions -->
-        </div>
+        <div id="oauth-scopes-list" class="scopes-breakdown"></div>
 
         <div id="pat-input-container" class="pat-section hidden" style="margin-top: 1rem;">
           <label class="form-label">Personal Access Token (PAT):</label>
