@@ -2,7 +2,7 @@
   "id": "github",
   "name": "GitHub",
   "category": "Code & Projects",
-  "description": "Import repositories, commit streaks, languages, and pull requests to build verified project portfolios.",
+  "description": "Connect your real GitHub account to import repositories, verified commit streaks, and project code.",
   "icon": "github",
   "color": "#24292e",
   "auth_type": "oauth2_pkce",
@@ -12,19 +12,11 @@
   "api_base": "https://api.github.com",
   "scopes": ["read:user", "repo:status", "public_repo"],
   "scope_descriptions": {
-    "read:user": "Reads your public profile info, username, and avatar to verify identity.",
+    "read:user": "Reads your verified public profile info, username, and avatar to verify identity.",
     "repo:status": "Reads public commit activity and build status for skill proof.",
     "public_repo": "Analyzes public project languages, architecture, and code quality."
   },
   "supports_pat": true,
   "pat_instruction": "Create a fine-grained Personal Access Token with 'Public Repositories (read-only)' access.",
-  "supports_manual_import": true,
-  "mock_user_endpoint": "/user",
-  "mock_data": {
-    "login": "octocat-dev",
-    "public_repos": 14,
-    "top_languages": ["Python", "TypeScript", "React", "Rust"],
-    "total_stars": 128,
-    "streak_days": 42
-  }
+  "supports_manual_import": true
 }

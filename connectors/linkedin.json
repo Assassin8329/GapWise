@@ -2,7 +2,7 @@
   "id": "linkedin",
   "name": "LinkedIn",
   "category": "Career & Experience",
-  "description": "Sync past job roles, endorsed skills, certifications, and target career interests.",
+  "description": "Sync real work experience, verified skills, and certifications from your LinkedIn profile.",
   "icon": "linkedin",
   "color": "#0a66c2",
   "auth_type": "oauth2_pkce",
@@ -12,16 +12,9 @@
   "api_base": "https://api.linkedin.com/v2",
   "scopes": ["r_liteprofile", "r_emailaddress"],
   "scope_descriptions": {
-    "r_liteprofile": "Reads your verified name, current headline, and basic profile info.",
+    "r_liteprofile": "Reads your verified name, headline, and profile identifier.",
     "r_emailaddress": "Confirms your primary account email address for unified login."
   },
   "supports_pat": false,
-  "supports_manual_import": true,
-  "mock_user_endpoint": "/me",
-  "mock_data": {
-    "headline": "Aspiring Full Stack Engineer | CS Senior",
-    "verified_skills": ["Python", "SQL", "Git", "Problem Solving"],
-    "endorsements_count": 38,
-    "current_company": "Tech Fellowship"
-  }
+  "supports_manual_import": true
 }

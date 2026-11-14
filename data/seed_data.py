@@ -1,182 +1,19 @@
 """
-Rich realistic seed dataset for AI Learning Platform:
-- Sample profiles (Student, Job Seeker, Working Professional)
-- Full course library with dependency nodes & explanations
-- Question bank with IRT difficulty tags
-- Mock interview bank
-- Cohort dataset
-- Job market demand stats
+GapWise Curriculum & Evaluation Definitions.
+Zero fake user data. All learner profiles, scores, and attempts are created by real users.
 """
-
-import time
-
-SAMPLE_USERS = {
-    "usr_alex_student": {
-        "id": "usr_alex_student",
-        "name": "Alex Chen",
-        "email": "alex.chen@university.edu",
-        "user_type": "student",
-        "bio": "Senior Computer Science undergraduate preparing for software engineering roles. Strong foundational logic, building web development depth.",
-        "target_role": "Full Stack Developer",
-        "skills": {
-            "Python": {"self_rating": 4.5, "assessed_rating": 84, "verified": True, "last_assessed": time.time() - 86400*2, "decay_rate": 0.03, "last_reviewed": time.time() - 86400*3},
-            "SQL": {"self_rating": 4.0, "assessed_rating": 78, "verified": True, "last_assessed": time.time() - 86400*5, "decay_rate": 0.04, "last_reviewed": time.time() - 86400*6},
-            "HTML & CSS": {"self_rating": 3.5, "assessed_rating": 65, "verified": False, "last_assessed": time.time() - 86400*12, "decay_rate": 0.08, "last_reviewed": time.time() - 86400*14},
-            "JavaScript": {"self_rating": 2.0, "assessed_rating": 32, "verified": False, "last_assessed": time.time() - 86400*20, "decay_rate": 0.12, "last_reviewed": time.time() - 86400*22},
-            "React": {"self_rating": 1.5, "assessed_rating": 18, "verified": False, "last_assessed": None, "decay_rate": 0.15, "last_reviewed": time.time() - 86400*30},
-            "Node.js": {"self_rating": 1.0, "assessed_rating": 12, "verified": False, "last_assessed": None, "decay_rate": 0.15, "last_reviewed": time.time() - 86400*30},
-            "Git": {"self_rating": 4.0, "assessed_rating": 76, "verified": True, "last_assessed": time.time() - 86400*4, "decay_rate": 0.04, "last_reviewed": time.time() - 86400*5},
-            "Docker": {"self_rating": 1.5, "assessed_rating": 22, "verified": False, "last_assessed": None, "decay_rate": 0.12, "last_reviewed": time.time() - 86400*30}
-        },
-        "certifications": [
-            {"id": "cert_1", "title": "Data Structures & Algorithms in Python", "issuer": "UC Berkeley Extension", "issue_date": "2025-10-15", "credential_url": "https://credentials.example.edu/cert-9982", "verified": True},
-            {"id": "cert_2", "title": "Database Management Essentials", "issuer": "Coursera", "issue_date": "2026-01-20", "credential_url": "https://coursera.org/verify/DB-7721", "verified": True}
-        ],
-        "projects": [
-            {
-                "id": "proj_1",
-                "title": "Algorithmic Trading Backtester",
-                "description": "Historical equity strategy backtester in Python using NumPy and SQLite with risk ratio analytics.",
-                "skills": ["Python", "SQL", "Data Analysis"],
-                "github_url": "https://github.com/alex-chen/backtester",
-                "live_demo_url": "https://backtester-demo.web.app",
-                "completed": True,
-                "architecture": "Event-Driven CLI Engine",
-                "verified_badge": True
-            },
-            {
-                "id": "proj_2",
-                "title": "Campus Club Event Manager",
-                "description": "Student organization portal with calendar scheduling and RSVP tracking.",
-                "skills": ["HTML & CSS", "Python", "SQLite"],
-                "github_url": "https://github.com/alex-chen/campus-portal",
-                "live_demo_url": "https://campus-events.web.app",
-                "completed": True,
-                "architecture": "MVC Web Application",
-                "verified_badge": True
-            }
-        ],
-        "learning_rate": 1.15,
-        "xp": 1420,
-        "level": 4,
-        "level_title": "Full-Stack Apprentice",
-        "streak_days": 12,
-        "badges": [
-            {"id": "b_python", "name": "Python Virtuoso", "icon": "code", "unlocked_at": "2026-02-01"},
-            {"id": "b_streak10", "name": "Relentless Learner", "icon": "flame", "unlocked_at": "2026-02-10"},
-            {"id": "b_sql", "name": "Query Master", "icon": "database", "unlocked_at": "2026-02-12"}
-        ],
-        "opt_in_leaderboard": True,
-        "weekly_hours_budget": 14,
-        "exam_crunch_blocks": [
-            {"name": "Midterm Exam Week", "start_week": 3, "reduction_percent": 60, "notes": "Algorithms & Operating Systems exams"}
-        ]
-    },
-    "usr_maya_seeker": {
-        "id": "usr_maya_seeker",
-        "name": "Maya Patel",
-        "email": "maya.patel@devcareers.io",
-        "user_type": "job_seeker",
-        "bio": "Career switcher from Business Analytics into AI/ML Engineering. Seeking to master PyTorch, deep neural networks, and production MLOps.",
-        "target_role": "AI / ML Engineer",
-        "skills": {
-            "Python": {"self_rating": 4.5, "assessed_rating": 88, "verified": True, "last_assessed": time.time() - 86400, "decay_rate": 0.02, "last_reviewed": time.time() - 86400*2},
-            "SQL": {"self_rating": 5.0, "assessed_rating": 92, "verified": True, "last_assessed": time.time() - 86400*3, "decay_rate": 0.02, "last_reviewed": time.time() - 86400*3},
-            "Machine Learning": {"self_rating": 3.5, "assessed_rating": 68, "verified": True, "last_assessed": time.time() - 86400*7, "decay_rate": 0.06, "last_reviewed": time.time() - 86400*7},
-            "PyTorch": {"self_rating": 2.5, "assessed_rating": 45, "verified": False, "last_assessed": time.time() - 86400*14, "decay_rate": 0.10, "last_reviewed": time.time() - 86400*16},
-            "Deep Learning": {"self_rating": 2.0, "assessed_rating": 38, "verified": False, "last_assessed": time.time() - 86400*25, "decay_rate": 0.12, "last_reviewed": time.time() - 86400*28},
-            "MLOps": {"self_rating": 1.5, "assessed_rating": 20, "verified": False, "last_assessed": None, "decay_rate": 0.15, "last_reviewed": time.time() - 86400*30},
-            "Transformers / LLMs": {"self_rating": 2.5, "assessed_rating": 40, "verified": False, "last_assessed": None, "decay_rate": 0.12, "last_reviewed": time.time() - 86400*30}
-        },
-        "certifications": [
-            {"id": "cert_3", "title": "Machine Learning Specialization", "issuer": "DeepLearning.AI", "issue_date": "2025-11-10", "credential_url": "https://coursera.org/verify/ML-552", "verified": True}
-        ],
-        "projects": [
-            {
-                "id": "proj_3",
-                "title": "Customer Churn Prediction Pipeline",
-                "description": "End-to-end ML classification model with feature store and SHAP explainability.",
-                "skills": ["Python", "Machine Learning", "SQL"],
-                "github_url": "https://github.com/maya-patel/churn-predictor",
-                "live_demo_url": "https://churn-predictor.streamlit.app",
-                "completed": True,
-                "architecture": "Batch Inference Pipeline",
-                "verified_badge": True
-            }
-        ],
-        "learning_rate": 1.35,
-        "xp": 2680,
-        "level": 6,
-        "level_title": "ML Practitioner",
-        "streak_days": 21,
-        "badges": [
-            {"id": "b_streak20", "name": "Consistency Champion", "icon": "zap", "unlocked_at": "2026-02-05"},
-            {"id": "b_feynman", "name": "Explain-Back Scholar", "icon": "award", "unlocked_at": "2026-02-11"}
-        ],
-        "opt_in_leaderboard": True,
-        "weekly_hours_budget": 20,
-        "exam_crunch_blocks": []
-    },
-    "usr_david_pro": {
-        "id": "usr_david_pro",
-        "name": "David Miller",
-        "email": "david.miller@techcorp.com",
-        "user_type": "professional",
-        "bio": "Senior Backend Developer transitioning to Cloud Architecture & DevOps. Deep system architecture knowledge, leveling up Kubernetes and Terraform.",
-        "target_role": "Cloud & DevOps Engineer",
-        "skills": {
-            "Linux": {"self_rating": 4.5, "assessed_rating": 86, "verified": True, "last_assessed": time.time() - 86400*4, "decay_rate": 0.03, "last_reviewed": time.time() - 86400*4},
-            "Docker": {"self_rating": 4.0, "assessed_rating": 80, "verified": True, "last_assessed": time.time() - 86400*6, "decay_rate": 0.04, "last_reviewed": time.time() - 86400*6},
-            "Python / Bash": {"self_rating": 4.5, "assessed_rating": 88, "verified": True, "last_assessed": time.time() - 86400*2, "decay_rate": 0.02, "last_reviewed": time.time() - 86400*2},
-            "Kubernetes": {"self_rating": 2.5, "assessed_rating": 48, "verified": False, "last_assessed": time.time() - 86400*15, "decay_rate": 0.09, "last_reviewed": time.time() - 86400*18},
-            "Terraform / IaC": {"self_rating": 2.0, "assessed_rating": 35, "verified": False, "last_assessed": time.time() - 86400*24, "decay_rate": 0.11, "last_reviewed": time.time() - 86400*26},
-            "AWS / GCP": {"self_rating": 3.5, "assessed_rating": 62, "verified": True, "last_assessed": time.time() - 86400*10, "decay_rate": 0.06, "last_reviewed": time.time() - 86400*12},
-            "CI/CD Pipelines": {"self_rating": 3.0, "assessed_rating": 58, "verified": False, "last_assessed": time.time() - 86400*14, "decay_rate": 0.07, "last_reviewed": time.time() - 86400*15}
-        },
-        "certifications": [
-            {"id": "cert_4", "title": "AWS Certified Solutions Architect - Associate", "issuer": "Amazon Web Services", "issue_date": "2025-08-15", "credential_url": "https://aws.amazon.com/verify/SAA-8819", "verified": True}
-        ],
-        "projects": [
-            {
-                "id": "proj_4",
-                "title": "High-Throughput Microservice Gateway",
-                "description": "Reverse proxy and rate limiting gateway containerized with multi-stage Docker builds.",
-                "skills": ["Linux", "Docker", "Python / Bash"],
-                "github_url": "https://github.com/david-miller/gateway-core",
-                "live_demo_url": "https://gateway.example.org",
-                "completed": True,
-                "architecture": "Microservices Cluster",
-                "verified_badge": True
-            }
-        ],
-        "learning_rate": 0.90, # Busy professional preferring concise, high-yield practice
-        "xp": 3100,
-        "level": 7,
-        "level_title": "Systems Specialist",
-        "streak_days": 7,
-        "badges": [
-            {"id": "b_linux", "name": "Kernel Commander", "icon": "terminal", "unlocked_at": "2026-01-10"},
-            {"id": "b_aws", "name": "Cloud Pioneer", "icon": "cloud", "unlocked_at": "2026-01-28"}
-        ],
-        "opt_in_leaderboard": False,
-        "weekly_hours_budget": 8,
-        "exam_crunch_blocks": [
-            {"name": "Q1 Release Sprint", "start_week": 2, "reduction_percent": 50, "notes": "Production migration deliverables"}
-        ]
-    }
-}
 
 COURSES_CATALOG = [
     {
         "id": "c_js_deep_dive",
         "title": "Modern JavaScript: Execution Context, Event Loop & Closures",
         "category": "JavaScript",
-        "provider": "Platform Interactive Labs",
+        "provider": "Interactive Labs",
         "duration_hours": 10,
         "difficulty": "Intermediate",
         "prerequisites": ["HTML & CSS"],
         "unlocks": ["c_react_core", "c_node_async"],
-        "why_this_pick": "Bridges the #1 critical gap identified in your profile. Mastering the JavaScript Event Loop is essential before building React components and Node.js microservices.",
+        "why_this_pick": "Mastering the JavaScript Event Loop is essential before building React components and Node.js microservices.",
         "skills_targeted": ["JavaScript"],
         "modules_count": 6,
         "practical_exercise": "Build an asynchronous task queue with microtask prioritization.",
@@ -191,7 +28,7 @@ COURSES_CATALOG = [
         "difficulty": "Intermediate",
         "prerequisites": ["c_js_deep_dive"],
         "unlocks": ["c_fullstack_capstone"],
-        "why_this_pick": "Mandatory tier-1 requirement for Full Stack Developer roles. Targets your missing React proficiency with real-world state synchronization patterns.",
+        "why_this_pick": "Mandatory tier-1 requirement for Full Stack Developer roles. Targets React proficiency with state synchronization patterns.",
         "skills_targeted": ["React", "JavaScript"],
         "modules_count": 8,
         "practical_exercise": "Develop an interactive collaborative Kanban board with optimistic UI updates.",
@@ -206,7 +43,7 @@ COURSES_CATALOG = [
         "difficulty": "Intermediate",
         "prerequisites": ["c_js_deep_dive", "SQL"],
         "unlocks": ["c_fullstack_capstone"],
-        "why_this_pick": "Connects your existing SQL knowledge with modern JavaScript server runtimes, enabling you to build enterprise REST APIs.",
+        "why_this_pick": "Connects SQL knowledge with modern JavaScript server runtimes, enabling you to build enterprise REST APIs.",
         "skills_targeted": ["Node.js", "REST APIs", "SQL"],
         "modules_count": 7,
         "practical_exercise": "Build a JWT-secured rate-limited REST API with Postgres relational models.",
@@ -216,7 +53,7 @@ COURSES_CATALOG = [
         "id": "c_fullstack_capstone",
         "title": "Full Stack Production Capstone: Microservices, Docker & CI/CD",
         "category": "Full Stack",
-        "provider": "Antigravity Engineering Labs",
+        "provider": "GapWise Engineering Labs",
         "duration_hours": 20,
         "difficulty": "Advanced",
         "prerequisites": ["c_react_core", "c_node_async"],
@@ -236,7 +73,7 @@ COURSES_CATALOG = [
         "difficulty": "Intermediate",
         "prerequisites": ["Python", "Machine Learning"],
         "unlocks": ["c_mlops_prod"],
-        "why_this_pick": "Essential for AI/ML Engineer matching. Bridges your current 45% PyTorch rating up to the target 85% requirement.",
+        "why_this_pick": "Essential for AI/ML Engineer matching. Bridges PyTorch rating up to production requirements.",
         "skills_targeted": ["PyTorch", "Deep Learning"],
         "modules_count": 8,
         "practical_exercise": "Implement multi-head self-attention from scratch and train a language model.",
@@ -266,7 +103,7 @@ COURSES_CATALOG = [
         "difficulty": "Advanced",
         "prerequisites": ["Linux", "Docker"],
         "unlocks": ["c_terraform_iac"],
-        "why_this_pick": "Resolves your highest priority gap for Cloud & DevOps Architect. Transitions you from single-host Docker to enterprise multi-cluster orchestration.",
+        "why_this_pick": "Resolves highest priority gap for Cloud & DevOps Architect. Transitions from single-host Docker to multi-cluster orchestration.",
         "skills_targeted": ["Kubernetes", "Observability"],
         "modules_count": 9,
         "practical_exercise": "Set up a high-availability cluster with ingress controller and mutual TLS.",
@@ -281,7 +118,7 @@ COURSES_CATALOG = [
         "difficulty": "Intermediate",
         "prerequisites": ["c_k8s_mastery", "AWS / GCP"],
         "unlocks": [],
-        "why_this_pick": "Required by 91% of modern Cloud Engineering postings. Turns manual cloud configuration into version-controlled reproducible code.",
+        "why_this_pick": "Required by 91% of modern Cloud Engineering postings. Turns cloud configuration into version-controlled reproducible code.",
         "skills_targeted": ["Terraform / IaC", "CI/CD Pipelines", "AWS / GCP"],
         "modules_count": 6,
         "practical_exercise": "Provision an automated multi-region VPC with automated state locking in S3.",
@@ -294,7 +131,7 @@ QUESTION_BANK = [
         "id": "q_js_event_loop",
         "skill": "JavaScript",
         "topic": "Event Loop & Microtasks",
-        "difficulty": 2, # IRT parameter b = 2
+        "difficulty": 2,
         "type": "multiple_choice",
         "question": "What is the exact execution order of the following JavaScript snippet?",
         "code_snippet": "console.log('1');\nsetTimeout(() => console.log('2'), 0);\nPromise.resolve().then(() => console.log('3'));\nconsole.log('4');",
@@ -422,47 +259,3 @@ MOCK_INTERVIEW_BANK = {
         }
     ]
 }
-
-COHORT_HEATMAP_DATA = {
-    "cohort_name": "Senior CS Batch 2026 - Accelerated Track",
-    "skills": ["Python", "JavaScript", "React", "Node.js", "SQL", "Docker", "Git", "System Design"],
-    "students": [
-        {"name": "Alex Chen", "scores": [84, 32, 18, 12, 78, 22, 76, 45]},
-        {"name": "Sophia Zhang", "scores": [72, 85, 88, 70, 65, 50, 82, 60]},
-        {"name": "Marcus Vance", "scores": [90, 40, 30, 25, 85, 75, 88, 55]},
-        {"name": "Elena Rostova", "scores": [65, 80, 82, 78, 60, 40, 75, 62]},
-        {"name": "Jordan Lee", "scores": [88, 92, 90, 85, 82, 70, 90, 78]},
-        {"name": "Amina Diop", "scores": [45, 60, 55, 48, 50, 30, 65, 40]},
-        {"name": "Liam Murphy", "scores": [78, 70, 65, 60, 75, 58, 80, 65]},
-        {"name": "Priya Nair", "scores": [92, 45, 35, 28, 90, 65, 85, 70]},
-        {"name": "Carlos Gomez", "scores": [55, 75, 72, 68, 58, 45, 70, 50]},
-        {"name": "Hana Tanaka", "scores": [82, 88, 85, 80, 76, 68, 88, 74]}
-    ]
-}
-
-JOB_MARKET_STATS = [
-    {
-        "role": "Full Stack Developer",
-        "open_positions": "42,850",
-        "demand_trend": "+22% YoY",
-        "median_salary": "$124,000",
-        "top_skills_in_demand": ["React", "TypeScript", "Node.js", "SQL", "Docker", "AWS"],
-        "declining_skills": ["jQuery", "PHP (Legacy)", "SOAP APIs"]
-    },
-    {
-        "role": "AI / ML Engineer",
-        "open_positions": "28,400",
-        "demand_trend": "+38% YoY",
-        "median_salary": "$158,000",
-        "top_skills_in_demand": ["PyTorch", "LLMs", "RAG Pipelines", "CUDA", "MLOps", "vLLM"],
-        "declining_skills": ["Manual Feature Engineering", "Theano"]
-    },
-    {
-        "role": "Cloud & DevOps Engineer",
-        "open_positions": "35,120",
-        "demand_trend": "+26% YoY",
-        "median_salary": "$142,000",
-        "top_skills_in_demand": ["Kubernetes", "Terraform", "GitHub Actions", "Prometheus", "eBPF", "AWS/GCP"],
-        "declining_skills": ["Manual Server Provisioning", "Chef/Puppet"]
-    }
-]

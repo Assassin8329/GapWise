@@ -2,7 +2,7 @@
   "id": "notion",
   "name": "Notion",
   "category": "Notes & Study Hub",
-  "description": "Export study roadmaps, AI mentor summaries, and quiz flashcards directly to your Notion workspace.",
+  "description": "Export study roadmaps, AI mentor summaries, and quiz flashcards directly to your real Notion workspace.",
   "icon": "file-text",
   "color": "#000000",
   "auth_type": "oauth2_pkce",
@@ -12,16 +12,10 @@
   "api_base": "https://api.notion.com/v1",
   "scopes": ["workspace.content.read", "workspace.content.write"],
   "scope_descriptions": {
-    "workspace.content.read": "Reads your study templates and existing learning schedule databases.",
-    "workspace.content.write": "Exports personalized learning roadmaps, AI check-in action items, and flashcards."
+    "workspace.content.read": "Reads your study templates and database schemas.",
+    "workspace.content.write": "Exports personalized learning roadmaps and AI action items."
   },
   "supports_pat": true,
   "pat_instruction": "Create an Internal Integration in notion.so/my-integrations and paste the Secret Key.",
-  "supports_manual_import": false,
-  "mock_user_endpoint": "/users/me",
-  "mock_data": {
-    "workspace_name": "Alex's Career HQ",
-    "bot_id": "bot_99182a",
-    "pages_shared": 3
-  }
+  "supports_manual_import": false
 }

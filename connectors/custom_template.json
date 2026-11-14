@@ -2,7 +2,7 @@
   "id": "custom_provider",
   "name": "Custom OAuth Provider",
   "category": "Custom Connector",
-  "description": "Drop-in configuration for any OAuth 2.0 PKCE compliant API provider.",
+  "description": "Drop-in configuration for any OAuth 2.0 PKCE compliant real API service.",
   "icon": "cpu",
   "color": "#6366f1",
   "auth_type": "oauth2_pkce",
@@ -17,10 +17,5 @@
   },
   "supports_pat": true,
   "pat_instruction": "Paste your API Bearer token.",
-  "supports_manual_import": true,
-  "mock_user_endpoint": "/user",
-  "mock_data": {
-    "status": "connected",
-    "provider": "Custom Generic Connector"
-  }
+  "supports_manual_import": true
 }
